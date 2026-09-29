@@ -754,11 +754,24 @@
   /* ---------- Site content ----------
      Words, photos, colors and lists come from content.json, which the admin page (/admin) edits.
      Anything missing from content.json keeps the text already written in this page. */
-  let CONTENT = {};
-  try {
-    const res = await fetch('content.json', { cache: 'no-cache' });
-    if (res.ok) CONTENT = await res.json();
-  } catch (err) { /* no content file: keep the built-in text */ }
+  /* Each admin page saves its own file in the content folder. look.json holds the site colors
+     and fonts on its own, so it's loaded as CONTENT.theme. The older single content.json is
+     still read first so nothing breaks if the folder is missing. */
+  const CONTENT_FILES = ['business', 'look', 'sections', 'products', 'sizes', 'colors', 'print-options',
+    'prices', 'reviews', 'faq', 'gallery', 'page-text', 'quote-form'];
+  const getJson = async url => {
+    try {
+      const res = await fetch(url, { cache: 'no-cache' });
+      return res.ok ? await res.json() : null;
+    } catch (err) { return null; }
+  };
+  const [legacy, ...parts] = await Promise.all([getJson('content.json'), ...CONTENT_FILES.map(n => getJson('content/' + n + '.json'))]);
+  let CONTENT = Object.assign({}, legacy || {});
+  parts.forEach((data, i) => {
+    if (!data || typeof data !== 'object') return;
+    if (CONTENT_FILES[i] === 'look') CONTENT.theme = data;
+    else Object.assign(CONTENT, data);
+  });
   const pick = path => path.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : undefined), CONTENT);
   document.querySelectorAll('[data-c]').forEach(el => {
     const v = pick(el.dataset.c);
