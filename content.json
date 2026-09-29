@@ -1,0 +1,267 @@
+{
+  "businessName": "Tiki T's LLC",
+  "email": "tikitsllc@gmail.com",
+  "banner": "tiki-banner.jpg",
+
+  "theme": {
+    "pink": "#e0268a",
+    "yellow": "#f5d629",
+    "teal": "#6cc8cb",
+    "dark": "#141414",
+    "sand": "#f7e7b8",
+    "lightBlue": "#bfe6f7",
+    "ocean": "#19b5c9",
+    "headingFont": "Permanent Marker",
+    "bodyFont": "Figtree"
+  },
+
+  "sections": {
+    "whatWePrint": true,
+    "prices": true,
+    "howItWorks": true,
+    "reviews": true,
+    "quote": true,
+    "faq": true,
+    "contact": true,
+    "ourPrints": true
+  },
+
+  "nav": {
+    "ourPrints": "Our prints",
+    "whatWePrint": "What we print",
+    "howItWorks": "How it works",
+    "quote": "Get a quote",
+    "faq": "FAQ"
+  },
+
+  "hero": {
+    "orderButton": "Start your order",
+    "emailButton": "Email us"
+  },
+
+  "whatWePrint": {
+    "eyebrow": "What we print",
+    "heading": "Tees, hoodies, bags & tumblers",
+    "intro": "Bring a sketch, a photo, a logo or just an idea. We'll put it on something you'll actually wear, carry or drink from.",
+    "greatForLabel": "Great for:",
+    "greatFor": "gifts, businesses & brands, teams & clubs, family reunions, birthdays, bachelor and bachelorette trips, and memorials."
+  },
+
+  "items": [
+    {
+      "name": "T-shirts",
+      "singular": "shirt",
+      "show": true,
+      "showCard": true,
+      "picture": "tshirt",
+      "hasSizes": true,
+      "hasMaterial": true,
+      "cardTitle": "T-shirts",
+      "cardText": "Our bread and butter. Your art, logo, photo or inside joke on a tee, from one shirt to a whole crew.",
+      "styleLabel": "",
+      "stylePlaceholder": "",
+      "printSpots": ["Front", "Left chest", "Right chest", "Left sleeve", "Right sleeve", "Back", "Back of neck"],
+      "detailsPlaceholder": "What it's for, what goes on the front and back, text, names, colors, the look you want...",
+      "colors": []
+    },
+    {
+      "name": "Hoodies or jackets",
+      "singular": "hoodie or jacket",
+      "show": true,
+      "showCard": true,
+      "picture": "hoodie",
+      "hasSizes": true,
+      "hasMaterial": true,
+      "cardTitle": "Hoodies & jackets",
+      "cardText": "Warm layers with your design on the chest, back or sleeve. Good for teams, crews and cooler nights.",
+      "styleLabel": "Style (optional)",
+      "stylePlaceholder": "Pullover hoodie, zip-up, windbreaker...",
+      "printSpots": ["Front", "Left chest", "Right chest", "Left sleeve", "Right sleeve", "Back", "Hood"],
+      "detailsPlaceholder": "What goes on the front and back, text, names, colors, the look you want...",
+      "colors": []
+    },
+    {
+      "name": "Bags",
+      "singular": "bag",
+      "show": true,
+      "showCard": true,
+      "picture": "bag",
+      "hasSizes": false,
+      "hasMaterial": true,
+      "cardTitle": "Bags",
+      "cardText": "Totes and bags for the beach, the market, your business or a bridal party.",
+      "styleLabel": "Bag style (optional)",
+      "stylePlaceholder": "Canvas tote, drawstring bag...",
+      "printSpots": ["Front", "Back"],
+      "detailsPlaceholder": "What goes on it, text, names, colors...",
+      "colors": []
+    },
+    {
+      "name": "Cups or tumblers",
+      "singular": "cup",
+      "show": true,
+      "showCard": true,
+      "picture": "cup",
+      "hasSizes": false,
+      "hasMaterial": false,
+      "cardTitle": "Cups & tumblers",
+      "cardText": "Your name, logo or design on a cup or tumbler. Easy gifts that people use every day.",
+      "styleLabel": "Cup size (optional)",
+      "stylePlaceholder": "20 oz tumbler",
+      "printSpots": ["One side", "Both sides", "Full wrap"],
+      "detailsPlaceholder": "Names on each cup, photo, logo, colors...",
+      "colors": []
+    }
+  ],
+
+  "fits": [
+    { "name": "Men's", "sizes": ["XS", "S", "M", "L", "XL", "2XL", "3XL"] },
+    { "name": "Women's", "sizes": ["XS", "S", "M", "L", "XL", "2XL", "3XL"] },
+    { "name": "Kids", "sizes": ["XS", "S", "M", "L", "XL"] }
+  ],
+
+  "colors": [
+    { "name": "White", "hex": "#ffffff" },
+    { "name": "Black", "hex": "#111111" },
+    { "name": "Heather gray", "hex": "#b7b7b3" },
+    { "name": "Charcoal", "hex": "#4a4a4a" },
+    { "name": "Navy", "hex": "#1f2a5a" },
+    { "name": "Royal blue", "hex": "#2851c6" },
+    { "name": "Light blue", "hex": "#9fd3f0" },
+    { "name": "Teal", "hex": "#1aa6a6" },
+    { "name": "Red", "hex": "#d22630" },
+    { "name": "Maroon", "hex": "#6d1f2d" },
+    { "name": "Pink", "hex": "#f4a6c6" },
+    { "name": "Hot pink", "hex": "#e0268a" },
+    { "name": "Purple", "hex": "#6b3fa0" },
+    { "name": "Kelly green", "hex": "#1f9b4a" },
+    { "name": "Forest green", "hex": "#24472f" },
+    { "name": "Yellow", "hex": "#f5d629" },
+    { "name": "Orange", "hex": "#f28a1a" },
+    { "name": "Tan", "hex": "#d8c3a0" },
+    { "name": "Brown", "hex": "#6b4a2f" }
+  ],
+
+  "methods": [
+    { "name": "DTF (direct to film)", "description": "Design is printed on film and heat-pressed on. Works on most fabrics and any color, dark ones too." },
+    { "name": "Dye sublimation", "description": "Ink dyes right into the surface, so it never cracks or peels and you can't feel it. Needs polyester in white or light colors." }
+  ],
+
+  "materialOptions": [
+    { "name": "Cotton", "description": "Soft, breathable, classic feel." },
+    { "name": "Polyester", "description": "Lightweight, dries fast, holds its shape. Needed for sublimation." }
+  ],
+
+  "pricing": {
+    "heading": "Starting prices",
+    "note": ""
+  },
+  "prices": [],
+
+  "howItWorks": {
+    "eyebrow": "How it works",
+    "heading": "From idea to ink",
+    "intro": "Every order goes through the same four steps, so you know what you're getting before anything is printed."
+  },
+  "steps": [
+    { "title": "Tell us the idea", "text": "Fill out the quote form or email us. Send any pictures or files you have." },
+    { "title": "We design it", "text": "We lay out your artwork and send you a proof to look over." },
+    { "title": "You approve", "text": "Ask for changes until it looks right. Nothing prints until you say go." },
+    { "title": "We ink it", "text": "Your order gets printed and we let you know when it's ready." }
+  ],
+
+  "reviewsSection": {
+    "eyebrow": "Happy customers",
+    "heading": "What people are saying"
+  },
+  "reviews": [],
+
+  "quote": {
+    "eyebrow": "Free quote",
+    "heading": "Tell us what you want inked",
+    "intro": "Fill this out and we'll get back to you with a price. The more detail you give, the faster and more accurate your quote will be.",
+    "timingLabel": "About timing:",
+    "timingNote": "how long an order takes depends on how busy we are. We'll let you know when yours can be ready when we send your quote."
+  },
+  "purposes": ["Personal / gift", "Business or brand", "Team or club", "Event or reunion", "Something else"],
+  "artOptions": ["Yes, I uploaded it above or will email it", "I have some ideas but need help finishing the design", "No, I need you to design it"],
+
+  "form": {
+    "nameLabel": "Name",
+    "contactLabel": "Phone or email",
+    "purposeLabel": "What's it for?",
+    "itemsQuestion": "What do you want printed? Pick all that apply.",
+    "itemsHint": "Each item you pick gets its own section below for sizes, colors and print details.",
+    "uploadLabel": "Upload your design (optional)",
+    "uploadHint": "Logos, photos, sketches or examples you like. Up to 3 files, 8 MB total. If you upload a picture, it shows up on the shirt below so you can drag it where you want it.",
+    "linesQuestionSized": "What do you need? Add one line for each color and size.",
+    "linesQuestion": "What do you need? Add one line for each color.",
+    "sizesHint": "Example: 2 black men's L on one line, 3 white women's M on the next, 1 orange kids S on the next. Kids sizes are youth sizes.",
+    "sizeChartLink": "See the size chart",
+    "addLine": "+ Add another line",
+    "otherColor": "Other color",
+    "spotsQuestion": "Where should the print go? Drag the tiki (or your uploaded design) onto the picture, or tap a spot below.",
+    "spotsQuestionNoPicture": "Where should the print go? Pick all that apply.",
+    "methodLabel": "Print method",
+    "materialLabel": "Material",
+    "notSureTitle": "Not sure",
+    "notSureMethod": "We'll pick the best one for your design.",
+    "notSureMaterial": "We'll help you choose.",
+    "sublimationWarning": "Dye sublimation doesn't work on cotton. Pick polyester, or switch to DTF.",
+    "detailsLabel": "Design details for",
+    "artQuestion": "Do you have artwork or pictures?",
+    "missingMessage": "Almost there. Please add your name, a way to reach you, and at least one line with how many for each item you picked.",
+    "reviewButton": "Review my quote request",
+    "reviewHeading": "Check your request, then hit Send:",
+    "sendButton": "Send quote request",
+    "sendHint": "Your request and any artwork you uploaded go straight to Tiki T's.",
+    "sentMessage": "Your quote request is on its way to Tiki T's. We'll get back to you soon."
+  },
+
+  "faqSection": {
+    "eyebrow": "Good to know",
+    "heading": "Questions & answers"
+  },
+  "faq": [
+    { "question": "What kind of files should I send?", "answer": "PNG, JPG or PDF files work best, and bigger, clearer files print sharper. If all you have is a phone photo or a sketch, send it anyway and we'll help you turn it into something printable." },
+    { "question": "What's the difference between DTF and dye sublimation?", "answer": "DTF prints your design on a film and heat-presses it on, so it works on almost any fabric and any color. Dye sublimation dyes the ink right into the fabric so you can't feel it at all, but it needs polyester in white or light colors. Not sure? Pick \"Not sure\" on the quote form and we'll recommend one." },
+    { "question": "How should I wash my shirt?", "answer": "Turn it inside out, wash cold, and tumble dry low or hang dry. Don't iron right on top of the print. That keeps it looking new for a long time." },
+    { "question": "How long will my order take?", "answer": "It depends on the size of the order and how busy we are. We'll tell you when yours can be ready when we send your quote." }
+  ],
+  "sizeChartSection": {
+    "heading": "Size chart"
+  },
+  "sizeChart": "",
+  "sizeChartNote": "",
+
+  "prints": {
+    "eyebrow": "Our prints",
+    "heading": "Stuff we've inked",
+    "intro": "Tees, hoodies, bags and tumblers we've made for customers. Tap a type to narrow it down.",
+    "allLabel": "All",
+    "ctaText": "Want one of these, or something totally new?",
+    "ctaButton": "Start your order"
+  },
+  "gallery": [
+    { "name": "Photo coming soon", "kind": "T-shirts", "photo": "" },
+    { "name": "Photo coming soon", "kind": "Hoodies or jackets", "photo": "" },
+    { "name": "Photo coming soon", "kind": "Bags", "photo": "" },
+    { "name": "Photo coming soon", "kind": "Cups or tumblers", "photo": "" }
+  ],
+
+  "contact": {
+    "eyebrow": "Get in touch",
+    "heading": "Email us",
+    "intro": "Questions, rush orders or just want to talk through an idea? Send us an email.",
+    "emailLabel": "Email"
+  },
+  "social": {
+    "instagram": "",
+    "facebook": "",
+    "tiktok": ""
+  },
+
+  "footer": {
+    "tagline": "Custom tees, your way."
+  }
+}
