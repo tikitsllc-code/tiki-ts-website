@@ -1,0 +1,17 @@
+{
+  "businessName": "Tiki T's LLC",
+  "email": "tikitsllc@gmail.com",
+  "banner": "/tiki-banner.jpg",
+  "hero": {
+    "orderButton": "Start your order",
+    "emailButton": "Email us"
+  },
+  "footer": {
+    "tagline": "Custom tees, your way."
+  },
+  "social": {
+    "instagram": "",
+    "facebook": "",
+    "tiktok": ""
+  }
+}

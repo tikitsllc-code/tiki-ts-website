@@ -1,0 +1,91 @@
+{
+  "items": [
+    {
+      "name": "T-shirts",
+      "singular": "shirt",
+      "show": true,
+      "showCard": true,
+      "picture": "tshirt",
+      "hasSizes": true,
+      "hasMaterial": true,
+      "cardTitle": "T-shirts",
+      "cardText": "Our bread and butter. Your art, logo, photo or inside joke on a tee, from one shirt to a whole crew.",
+      "styleLabel": "",
+      "stylePlaceholder": "",
+      "printSpots": [
+        "Front",
+        "Left chest",
+        "Right chest",
+        "Left sleeve",
+        "Right sleeve",
+        "Back",
+        "Back of neck"
+      ],
+      "detailsPlaceholder": "What it's for, what goes on the front and back, text, names, colors, the look you want...",
+      "colors": []
+    },
+    {
+      "name": "Hoodies or jackets",
+      "singular": "hoodie or jacket",
+      "show": true,
+      "showCard": true,
+      "picture": "hoodie",
+      "hasSizes": true,
+      "hasMaterial": true,
+      "cardTitle": "Hoodies & jackets",
+      "cardText": "Warm layers with your design on the chest, back or sleeve. Good for teams, crews and cooler nights.",
+      "styleLabel": "Style (optional)",
+      "stylePlaceholder": "Pullover hoodie, zip-up, windbreaker...",
+      "printSpots": [
+        "Front",
+        "Left chest",
+        "Right chest",
+        "Left sleeve",
+        "Right sleeve",
+        "Back",
+        "Hood"
+      ],
+      "detailsPlaceholder": "What goes on the front and back, text, names, colors, the look you want...",
+      "colors": []
+    },
+    {
+      "name": "Bags",
+      "singular": "bag",
+      "show": true,
+      "showCard": true,
+      "picture": "bag",
+      "hasSizes": false,
+      "hasMaterial": true,
+      "cardTitle": "Bags",
+      "cardText": "Totes and bags for the beach, the market, your business or a bridal party.",
+      "styleLabel": "Bag style (optional)",
+      "stylePlaceholder": "Canvas tote, drawstring bag...",
+      "printSpots": [
+        "Front",
+        "Back"
+      ],
+      "detailsPlaceholder": "What goes on it, text, names, colors...",
+      "colors": []
+    },
+    {
+      "name": "Cups or tumblers",
+      "singular": "cup",
+      "show": true,
+      "showCard": true,
+      "picture": "cup",
+      "hasSizes": false,
+      "hasMaterial": false,
+      "cardTitle": "Cups & tumblers",
+      "cardText": "Your name, logo or design on a cup or tumbler. Easy gifts that people use every day.",
+      "styleLabel": "Cup size (optional)",
+      "stylePlaceholder": "20 oz tumbler",
+      "printSpots": [
+        "One side",
+        "Both sides",
+        "Full wrap"
+      ],
+      "detailsPlaceholder": "Names on each cup, photo, logo, colors...",
+      "colors": []
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "quote": {
+    "eyebrow": "Free quote",
+    "heading": "Tell us what you want inked",
+    "intro": "Fill this out and we'll get back to you with a price. The more detail you give, the faster and more accurate your quote will be.",
+    "timingLabel": "About timing:",
+    "timingNote": "how long an order takes depends on how busy we are. We'll let you know when yours can be ready when we send your quote."
+  },
+  "purposes": [
+    "Personal / gift",
+    "Business or brand",
+    "Team or club",
+    "Event or reunion",
+    "Something else"
+  ],
+  "artOptions": [
+    "Yes, I uploaded it above or will email it",
+    "I have some ideas but need help finishing the design",
+    "No, I need you to design it"
+  ],
+  "form": {
+    "nameLabel": "Name",
+    "contactLabel": "Phone or email",
+    "purposeLabel": "What's it for?",
+    "itemsQuestion": "What do you want printed? Pick all that apply.",
+    "itemsHint": "Each item you pick gets its own section below for sizes, colors and print details.",
+    "uploadLabel": "Upload your design (optional)",
+    "uploadHint": "Logos, photos, sketches or examples you like. Up to 3 files, 8 MB total. If you upload a picture, it shows up on the shirt below so you can drag it where you want it.",
+    "linesQuestionSized": "What do you need? Add one line for each color and size.",
+    "linesQuestion": "What do you need? Add one line for each color.",
+    "sizesHint": "Example: 2 black men's L on one line, 3 white women's M on the next, 1 orange kids S on the next. Kids sizes are youth sizes.",
+    "sizeChartLink": "See the size chart",
+    "addLine": "+ Add another line",
+    "otherColor": "Other color",
+    "spotsQuestion": "Where should the print go? Drag the tiki (or your uploaded design) onto the picture, or tap a spot below.",
+    "spotsQuestionNoPicture": "Where should the print go? Pick all that apply.",
+    "methodLabel": "Print method",
+    "materialLabel": "Material",
+    "notSureTitle": "Not sure",
+    "notSureMethod": "We'll pick the best one for your design.",
+    "notSureMaterial": "We'll help you choose.",
+    "sublimationWarning": "Dye sublimation doesn't work on cotton. Pick polyester, or switch to DTF.",
+    "detailsLabel": "Design details for",
+    "artQuestion": "Do you have artwork or pictures?",
+    "missingMessage": "Almost there. Please add your name, a way to reach you, and at least one line with how many for each item you picked.",
+    "reviewButton": "Review my quote request",
+    "reviewHeading": "Check your request, then hit Send:",
+    "sendButton": "Send quote request",
+    "sendHint": "Your request and any artwork you uploaded go straight to Tiki T's.",
+    "sentMessage": "Your quote request is on its way to Tiki T's. We'll get back to you soon."
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "prints": {
+    "eyebrow": "Our prints",
+    "heading": "Stuff we've inked",
+    "intro": "Tees, hoodies, bags and tumblers we've made for customers. Tap a type to narrow it down.",
+    "allLabel": "All",
+    "ctaText": "Want one of these, or something totally new?",
+    "ctaButton": "Start your order"
+  },
+  "gallery": [
+    {
+      "name": "Photo coming soon",
+      "kind": "T-shirts",
+      "photo": ""
+    },
+    {
+      "name": "Photo coming soon",
+      "kind": "Hoodies or jackets",
+      "photo": ""
+    },
+    {
+      "name": "Photo coming soon",
+      "kind": "Bags",
+      "photo": ""
+    },
+    {
+      "name": "Photo coming soon",
+      "kind": "Cups or tumblers",
+      "photo": ""
+    }
+  ]
+}

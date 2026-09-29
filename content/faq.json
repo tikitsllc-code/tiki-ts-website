@@ -1,0 +1,29 @@
+{
+  "faqSection": {
+    "eyebrow": "Good to know",
+    "heading": "Questions & answers"
+  },
+  "faq": [
+    {
+      "question": "What kind of files should I send?",
+      "answer": "PNG, JPG or PDF files work best, and bigger, clearer files print sharper. If all you have is a phone photo or a sketch, send it anyway and we'll help you turn it into something printable."
+    },
+    {
+      "question": "What's the difference between DTF and dye sublimation?",
+      "answer": "DTF prints your design on a film and heat-presses it on, so it works on almost any fabric and any color. Dye sublimation dyes the ink right into the fabric so you can't feel it at all, but it needs polyester in white or light colors. Not sure? Pick \"Not sure\" on the quote form and we'll recommend one."
+    },
+    {
+      "question": "How should I wash my shirt?",
+      "answer": "Turn it inside out, wash cold, and tumble dry low or hang dry. Don't iron right on top of the print. That keeps it looking new for a long time."
+    },
+    {
+      "question": "How long will my order take?",
+      "answer": "It depends on the size of the order and how busy we are. We'll tell you when yours can be ready when we send your quote."
+    }
+  ],
+  "sizeChartSection": {
+    "heading": "Size chart"
+  },
+  "sizeChart": "",
+  "sizeChartNote": ""
+}

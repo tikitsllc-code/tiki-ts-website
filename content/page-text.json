@@ -1,0 +1,38 @@
+{
+  "whatWePrint": {
+    "eyebrow": "What we print",
+    "heading": "Tees, hoodies, bags & tumblers",
+    "intro": "Bring a sketch, a photo, a logo or just an idea. We'll put it on something you'll actually wear, carry or drink from.",
+    "greatForLabel": "Great for:",
+    "greatFor": "gifts, businesses & brands, teams & clubs, family reunions, birthdays, bachelor and bachelorette trips, and memorials."
+  },
+  "howItWorks": {
+    "eyebrow": "How it works",
+    "heading": "From idea to ink",
+    "intro": "Every order goes through the same four steps, so you know what you're getting before anything is printed."
+  },
+  "steps": [
+    {
+      "title": "Tell us the idea",
+      "text": "Fill out the quote form or email us. Send any pictures or files you have."
+    },
+    {
+      "title": "We design it",
+      "text": "We lay out your artwork and send you a proof to look over."
+    },
+    {
+      "title": "You approve",
+      "text": "Ask for changes until it looks right. Nothing prints until you say go."
+    },
+    {
+      "title": "We ink it",
+      "text": "Your order gets printed and we let you know when it's ready."
+    }
+  ],
+  "contact": {
+    "eyebrow": "Get in touch",
+    "heading": "Email us",
+    "intro": "Questions, rush orders or just want to talk through an idea? Send us an email.",
+    "emailLabel": "Email"
+  }
+}

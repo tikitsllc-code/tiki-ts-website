@@ -1,0 +1,22 @@
+{
+  "methods": [
+    {
+      "name": "DTF (direct to film)",
+      "description": "Design is printed on film and heat-pressed on. Works on most fabrics and any color, dark ones too."
+    },
+    {
+      "name": "Dye sublimation",
+      "description": "Ink dyes right into the surface, so it never cracks or peels and you can't feel it. Needs polyester in white or light colors."
+    }
+  ],
+  "materialOptions": [
+    {
+      "name": "Cotton",
+      "description": "Soft, breathable, classic feel."
+    },
+    {
+      "name": "Polyester",
+      "description": "Lightweight, dries fast, holds its shape. Needed for sublimation."
+    }
+  ]
+}

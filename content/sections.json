@@ -1,0 +1,19 @@
+{
+  "sections": {
+    "whatWePrint": true,
+    "prices": true,
+    "howItWorks": true,
+    "reviews": true,
+    "quote": true,
+    "faq": true,
+    "contact": true,
+    "ourPrints": true
+  },
+  "nav": {
+    "ourPrints": "Our prints",
+    "whatWePrint": "What we print",
+    "howItWorks": "How it works",
+    "quote": "Get a quote",
+    "faq": "FAQ"
+  }
+}
