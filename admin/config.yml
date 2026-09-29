@@ -9,60 +9,93 @@ backend:
 
 # Photos you upload in the admin go into the images folder
 media_folder: "images"
-public_folder: "images"
+public_folder: "/images"
 
-site_url: "/"
-display_url: "/"
+site_url: "https://tikits.netlify.app"
+display_url: "https://tikits.netlify.app"
 logo_url: "/tiki-banner.jpg"
 
 collections:
   - name: "site"
-    label: "Website"
+    label: "Edit my website"
+    description: "Pick what you want to change. Click Publish at the top when you're done, and your site updates in about a minute."
     editor:
       preview: false
     files:
-      - name: "content"
-        label: "Everything on the site"
-        file: "content.json"
+
+      # ---------------------------------------------------------------
+      - name: "business"
+        label: "1. Business info, banner & social links"
+        file: "content/business.json"
         format: "json"
         fields:
-
-          # ---------- Basics ----------
-          - { label: "Business name (bottom of the page)", name: "businessName", widget: "string" }
-          - label: "Your email (quote requests and contact links go here)"
+          - label: "Business name"
+            name: "businessName"
+            widget: "string"
+            hint: "Shows at the bottom of every page."
+          - label: "Your email"
             name: "email"
             widget: "string"
-          - label: "Banner picture at the top"
+            hint: "Quote requests and the Email us links go here."
+          - label: "Banner picture"
             name: "banner"
             widget: "image"
             choose_url: false
-
-          # ---------- Site look ----------
-          - label: "SITE LOOK: colors and fonts"
-            name: "theme"
+            hint: "The big picture at the very top of the home page."
+          - label: "Buttons under the banner"
+            name: "hero"
             widget: "object"
-            collapsed: true
             fields:
-              - { label: "Pink (main buttons, accents)", name: "pink", widget: "color" }
-              - { label: "Yellow (second buttons, highlights)", name: "yellow", widget: "color" }
-              - { label: "Teal (logo T's, labels)", name: "teal", widget: "color" }
-              - { label: "Dark (text, outlines, top bar)", name: "dark", widget: "color" }
-              - { label: "Sand (page background)", name: "sand", widget: "color" }
-              - { label: "Light blue (How it works, FAQ backgrounds)", name: "lightBlue", widget: "color" }
-              - { label: "Ocean blue (quote form background)", name: "ocean", widget: "color" }
-              - label: "Heading font"
-                name: "headingFont"
-                widget: "select"
-                options: ["Permanent Marker", "Bangers", "Luckiest Guy", "Lilita One", "Rock Salt", "Pacifico", "Titan One", "Bungee"]
-              - label: "Text font"
-                name: "bodyFont"
-                widget: "select"
-                options: ["Figtree", "Nunito", "Poppins", "Lato", "Montserrat", "Open Sans", "Rubik"]
+              - { label: "Pink button", name: "orderButton", widget: "string" }
+              - { label: "Yellow button", name: "emailButton", widget: "string" }
+          - label: "Footer"
+            name: "footer"
+            widget: "object"
+            fields:
+              - { label: "Tagline at the bottom", name: "tagline", widget: "string" }
+          - label: "Social media links"
+            name: "social"
+            widget: "object"
+            hint: "Paste the full link (starts with https://). Leave a box empty to hide that one."
+            fields:
+              - { label: "Instagram", name: "instagram", widget: "string", required: false }
+              - { label: "Facebook", name: "facebook", widget: "string", required: false }
+              - { label: "TikTok", name: "tiktok", widget: "string", required: false }
 
-          - label: "SECTIONS: turn parts of the site on or off"
+      # ---------------------------------------------------------------
+      - name: "look"
+        label: "2. Site colors & fonts"
+        file: "content/look.json"
+        format: "json"
+        fields:
+          - { label: "Pink", name: "pink", widget: "color", hint: "Main buttons and accents." }
+          - { label: "Yellow", name: "yellow", widget: "color", hint: "Second buttons and highlights." }
+          - { label: "Teal", name: "teal", widget: "color", hint: "The T's in the logo and small labels." }
+          - { label: "Dark", name: "dark", widget: "color", hint: "Text, outlines and the top bar. Keep this dark so text is easy to read." }
+          - { label: "Sand", name: "sand", widget: "color", hint: "The main page background." }
+          - { label: "Light blue", name: "lightBlue", widget: "color", hint: "Background of How it works and the FAQ." }
+          - { label: "Ocean blue", name: "ocean", widget: "color", hint: "Background of the quote form." }
+          - label: "Heading font"
+            name: "headingFont"
+            widget: "select"
+            options: ["Permanent Marker", "Bangers", "Luckiest Guy", "Lilita One", "Rock Salt", "Pacifico", "Titan One", "Bungee"]
+            hint: "The big brush-style headings."
+          - label: "Text font"
+            name: "bodyFont"
+            widget: "select"
+            options: ["Figtree", "Nunito", "Poppins", "Lato", "Montserrat", "Open Sans", "Rubik"]
+            hint: "Everything else."
+
+      # ---------------------------------------------------------------
+      - name: "sections"
+        label: "3. Turn sections on/off & menu words"
+        file: "content/sections.json"
+        format: "json"
+        fields:
+          - label: "Show these sections"
             name: "sections"
             widget: "object"
-            collapsed: true
+            hint: "Switch off anything you don't want on the site right now."
             fields:
               - { label: "What we print", name: "whatWePrint", widget: "boolean", default: true }
               - { label: "Starting prices", name: "prices", widget: "boolean", default: true }
@@ -72,11 +105,9 @@ collections:
               - { label: "FAQ and size chart", name: "faq", widget: "boolean", default: true }
               - { label: "Contact", name: "contact", widget: "boolean", default: true }
               - { label: "Our prints page", name: "ourPrints", widget: "boolean", default: true }
-
-          - label: "MENU: words in the top bar"
+          - label: "Words in the top menu"
             name: "nav"
             widget: "object"
-            collapsed: true
             fields:
               - { label: "Our prints", name: "ourPrints", widget: "string" }
               - { label: "What we print", name: "whatWePrint", widget: "string" }
@@ -84,27 +115,27 @@ collections:
               - { label: "Get a quote", name: "quote", widget: "string" }
               - { label: "FAQ", name: "faq", widget: "string" }
 
-          - label: "TOP BUTTONS (under the banner)"
-            name: "hero"
-            widget: "object"
-            collapsed: true
-            fields:
-              - { label: "Pink button", name: "orderButton", widget: "string" }
-              - { label: "Yellow button", name: "emailButton", widget: "string" }
-
-          # ---------- Products ----------
-          - label: "PRODUCTS: what you print"
+      # ---------------------------------------------------------------
+      - name: "products"
+        label: "4. Products (tees, hoodies, bags, cups...)"
+        file: "content/products.json"
+        format: "json"
+        fields:
+          - label: "Products"
             name: "items"
             widget: "list"
-            collapsed: true
+            label_singular: "product"
             summary: "{{fields.name}}"
-            hint: "Add, remove or reorder products. Each one gets a card on the home page and its own section in the quote form."
+            collapsed: true
+            hint: "Click a product to open it. Use Add product to make a new one, drag to reorder, or the X to delete."
             fields:
-              - { label: "Name (plural)", name: "name", widget: "string", hint: "Example: T-shirts, Hats, Koozies" }
-              - { label: "Name for one", name: "singular", widget: "string", hint: "Example: shirt, hat, koozie" }
-              - { label: "Show this product", name: "show", widget: "boolean", default: true }
-              - { label: "Show a card for it in What we print", name: "showCard", widget: "boolean", default: true }
-              - label: "Picture for the placement picker"
+              - { label: "Name", name: "name", widget: "string", hint: "Plural, like T-shirts or Hats." }
+              - { label: "Name for just one", name: "singular", widget: "string", hint: "Like shirt or hat. Used in sentences like \"Drag the tiki onto the shirt\"." }
+              - { label: "Show this product on the site", name: "show", widget: "boolean", default: true }
+              - { label: "Show its card in What we print", name: "showCard", widget: "boolean", default: true }
+              - { label: "Card title", name: "cardTitle", widget: "string", required: false }
+              - { label: "Card text", name: "cardText", widget: "text", required: false }
+              - label: "Picture customers drag their design onto"
                 name: "picture"
                 widget: "select"
                 default: "none"
@@ -112,70 +143,219 @@ collections:
                   - { label: "T-shirt", value: "tshirt" }
                   - { label: "Hoodie or jacket", value: "hoodie" }
                   - { label: "Bag", value: "bag" }
-                  - { label: "Cup (no drag picture, just spot buttons)", value: "cup" }
-                  - { label: "None (just spot buttons)", value: "none" }
-              - { label: "Has sizes (men's, women's, kids...)", name: "hasSizes", widget: "boolean", default: false }
+                  - { label: "Cup (no picture, spot buttons only)", value: "cup" }
+                  - { label: "None (spot buttons only)", value: "none" }
+              - { label: "Ask for sizes", name: "hasSizes", widget: "boolean", default: false, hint: "Turn on for clothes. Uses the sizes from page 5." }
               - { label: "Ask cotton or polyester", name: "hasMaterial", widget: "boolean", default: false }
-              - { label: "Card title", name: "cardTitle", widget: "string", required: false }
-              - { label: "Card text", name: "cardText", widget: "text", required: false }
-              - { label: "Extra question label", name: "styleLabel", widget: "string", required: false, hint: "Example: Cup size (optional). Leave empty to skip." }
-              - { label: "Extra question example", name: "stylePlaceholder", widget: "string", required: false }
               - label: "Print spots"
                 name: "printSpots"
                 widget: "list"
-                hint: "Front, Back, Left chest, Right chest, Left sleeve, Right sleeve, Back of neck, Hood have set places on the picture. Other names still work as buttons."
-              - { label: "Design details example text", name: "detailsPlaceholder", widget: "text", required: false }
-              - label: "Colors for this product (leave empty to use the main color list)"
+                hint: "Buttons customers can tap. Front, Back, Left chest, Right chest, Left sleeve, Right sleeve, Back of neck and Hood also have a spot on the picture."
+              - label: "This product's colors"
                 name: "colors"
                 widget: "list"
+                label_singular: "color"
                 required: false
                 collapsed: true
                 summary: "{{fields.name}}"
+                hint: "Leave empty to use the main color list from page 6."
                 fields:
                   - { label: "Color name", name: "name", widget: "string" }
                   - { label: "Color", name: "hex", widget: "color" }
+              - { label: "Extra question (optional)", name: "styleLabel", widget: "string", required: false, hint: "Like \"Cup size\" or \"Hat style\". Leave empty for none." }
+              - { label: "Example answer for the extra question", name: "stylePlaceholder", widget: "string", required: false }
+              - { label: "Example text in the design details box", name: "detailsPlaceholder", widget: "text", required: false }
 
-          - label: "SIZES: fits and sizes"
+      # ---------------------------------------------------------------
+      - name: "sizes"
+        label: "5. Sizes"
+        file: "content/sizes.json"
+        format: "json"
+        fields:
+          - label: "Fits"
             name: "fits"
             widget: "list"
-            collapsed: true
+            label_singular: "fit"
             summary: "{{fields.name}}"
-            hint: "Each fit is a choice like Men's, Women's, Kids or Toddler, with its own list of sizes."
+            collapsed: true
+            hint: "Each fit is a choice like Men's, Women's, Kids or Toddler, with its own sizes."
             fields:
               - { label: "Fit name", name: "name", widget: "string" }
-              - { label: "Sizes", name: "sizes", widget: "list", hint: "Example: XS, S, M, L, XL, 2XL, 3XL, 4XL" }
+              - { label: "Sizes", name: "sizes", widget: "list", hint: "Type sizes separated by commas, like XS, S, M, L, XL, 2XL, 3XL" }
 
-          - label: "MAIN COLOR LIST (used by products without their own colors)"
+      # ---------------------------------------------------------------
+      - name: "colors"
+        label: "6. Main color list"
+        file: "content/colors.json"
+        format: "json"
+        fields:
+          - label: "Colors"
             name: "colors"
             widget: "list"
-            collapsed: true
+            label_singular: "color"
             summary: "{{fields.name}}"
+            collapsed: true
+            hint: "Used by every product that doesn't have its own colors. X deletes a color, Add color makes a new one."
             fields:
               - { label: "Color name", name: "name", widget: "string" }
               - { label: "Color", name: "hex", widget: "color" }
 
-          - label: "PRINT METHODS"
+      # ---------------------------------------------------------------
+      - name: "print-options"
+        label: "7. Print methods & materials"
+        file: "content/print-options.json"
+        format: "json"
+        fields:
+          - label: "Print methods"
             name: "methods"
             widget: "list"
-            collapsed: true
+            label_singular: "print method"
             summary: "{{fields.name}}"
+            collapsed: true
             hint: "A \"Not sure\" choice is always added at the end."
             fields:
               - { label: "Name", name: "name", widget: "string" }
-              - { label: "Description", name: "description", widget: "text", required: false }
-
-          - label: "MATERIALS"
+              - { label: "Short description", name: "description", widget: "text", required: false }
+          - label: "Materials"
             name: "materialOptions"
             widget: "list"
-            collapsed: true
+            label_singular: "material"
             summary: "{{fields.name}}"
+            collapsed: true
             hint: "A \"Not sure\" choice is always added at the end."
             fields:
               - { label: "Name", name: "name", widget: "string" }
-              - { label: "Description", name: "description", widget: "text", required: false }
+              - { label: "Short description", name: "description", widget: "text", required: false }
 
-          # ---------- Home page sections ----------
-          - label: "WHAT WE PRINT section"
+      # ---------------------------------------------------------------
+      - name: "prices"
+        label: "8. Starting prices"
+        file: "content/prices.json"
+        format: "json"
+        fields:
+          - label: "Prices"
+            name: "prices"
+            widget: "list"
+            label_singular: "price"
+            required: false
+            summary: "{{fields.item}}: {{fields.price}}"
+            collapsed: true
+            hint: "Leave empty and the prices section stays hidden."
+            fields:
+              - { label: "Item", name: "item", widget: "string", hint: "Like T-shirts" }
+              - { label: "Price", name: "price", widget: "string", hint: "Like From $15" }
+              - { label: "Small note", name: "note", widget: "string", required: false, hint: "Like 12+ shirts get a discount" }
+          - label: "Heading and note"
+            name: "pricing"
+            widget: "object"
+            fields:
+              - { label: "Heading", name: "heading", widget: "string" }
+              - { label: "Note under the prices", name: "note", widget: "text", required: false, hint: "Like: Minimum order 6 pieces. Final price depends on colors and print size." }
+
+      # ---------------------------------------------------------------
+      - name: "reviews"
+        label: "9. Customer reviews"
+        file: "content/reviews.json"
+        format: "json"
+        fields:
+          - label: "Reviews"
+            name: "reviews"
+            widget: "list"
+            label_singular: "review"
+            required: false
+            summary: "{{fields.name}}"
+            collapsed: true
+            hint: "Leave empty and the reviews section stays hidden."
+            fields:
+              - { label: "What they said", name: "quote", widget: "text" }
+              - { label: "Their name", name: "name", widget: "string", required: false, hint: "Like Maria G." }
+              - { label: "Stars (1 to 5)", name: "stars", widget: "number", value_type: "int", min: 1, max: 5, default: 5, required: false }
+          - label: "Section heading"
+            name: "reviewsSection"
+            widget: "object"
+            fields:
+              - { label: "Small label", name: "eyebrow", widget: "string" }
+              - { label: "Heading", name: "heading", widget: "string" }
+
+      # ---------------------------------------------------------------
+      - name: "faq"
+        label: "10. FAQ & size chart"
+        file: "content/faq.json"
+        format: "json"
+        fields:
+          - label: "Questions and answers"
+            name: "faq"
+            widget: "list"
+            label_singular: "question"
+            required: false
+            summary: "{{fields.question}}"
+            collapsed: true
+            fields:
+              - { label: "Question", name: "question", widget: "string" }
+              - { label: "Answer", name: "answer", widget: "text" }
+          - label: "FAQ heading"
+            name: "faqSection"
+            widget: "object"
+            fields:
+              - { label: "Small label", name: "eyebrow", widget: "string" }
+              - { label: "Heading", name: "heading", widget: "string" }
+          - label: "Size chart picture"
+            name: "sizeChart"
+            widget: "image"
+            required: false
+            choose_url: false
+            hint: "Upload your supplier's size chart. Leave empty to hide it."
+          - { label: "Note above the size chart", name: "sizeChartNote", widget: "text", required: false }
+          - label: "Size chart heading"
+            name: "sizeChartSection"
+            widget: "object"
+            fields:
+              - { label: "Heading", name: "heading", widget: "string" }
+
+      # ---------------------------------------------------------------
+      - name: "gallery"
+        label: "11. Our prints photos"
+        file: "content/gallery.json"
+        format: "json"
+        fields:
+          - label: "Photos"
+            name: "gallery"
+            widget: "list"
+            label_singular: "photo"
+            summary: "{{fields.name}}"
+            collapsed: true
+            hint: "Add photo to post a shirt, hoodie, bag or cup you made."
+            fields:
+              - { label: "Photo", name: "photo", widget: "image", required: false, choose_url: false }
+              - { label: "Name under the photo", name: "name", widget: "string", hint: "Like Reyes family reunion" }
+              - label: "Product type"
+                name: "kind"
+                widget: "relation"
+                collection: "site"
+                file: "products"
+                search_fields: ["items.*.name"]
+                value_field: "items.*.name"
+                display_fields: ["items.*.name"]
+                hint: "Used for the filter buttons on the Our prints page."
+          - label: "Page wording"
+            name: "prints"
+            widget: "object"
+            collapsed: true
+            fields:
+              - { label: "Small label", name: "eyebrow", widget: "string" }
+              - { label: "Heading", name: "heading", widget: "string" }
+              - { label: "Intro", name: "intro", widget: "text" }
+              - { label: "\"All\" filter button", name: "allLabel", widget: "string" }
+              - { label: "Text above the bottom button", name: "ctaText", widget: "string" }
+              - { label: "Bottom button", name: "ctaButton", widget: "string" }
+
+      # ---------------------------------------------------------------
+      - name: "page-text"
+        label: "12. Home page wording"
+        file: "content/page-text.json"
+        format: "json"
+        fields:
+          - label: "What we print section"
             name: "whatWePrint"
             widget: "object"
             collapsed: true
@@ -185,26 +365,7 @@ collections:
               - { label: "Intro", name: "intro", widget: "text" }
               - { label: "\"Great for\" label", name: "greatForLabel", widget: "string" }
               - { label: "Great for...", name: "greatFor", widget: "text" }
-
-          - label: "STARTING PRICES (leave empty to hide)"
-            name: "prices"
-            widget: "list"
-            collapsed: true
-            required: false
-            summary: "{{fields.item}}: {{fields.price}}"
-            fields:
-              - { label: "Item", name: "item", widget: "string", hint: "Example: T-shirts" }
-              - { label: "Price", name: "price", widget: "string", hint: "Example: From $15" }
-              - { label: "Small note", name: "note", widget: "string", required: false, hint: "Example: 12+ shirts get a discount" }
-          - label: "Starting prices heading and note"
-            name: "pricing"
-            widget: "object"
-            collapsed: true
-            fields:
-              - { label: "Heading", name: "heading", widget: "string" }
-              - { label: "Note under prices", name: "note", widget: "text", required: false, hint: "Example: Minimum order 6 pieces. Final price depends on colors and print size." }
-
-          - label: "HOW IT WORKS section"
+          - label: "How it works section"
             name: "howItWorks"
             widget: "object"
             collapsed: true
@@ -215,32 +376,29 @@ collections:
           - label: "How it works steps"
             name: "steps"
             widget: "list"
-            collapsed: true
+            label_singular: "step"
             summary: "{{fields.title}}"
+            collapsed: true
             fields:
               - { label: "Step title", name: "title", widget: "string" }
               - { label: "Step text", name: "text", widget: "text" }
-
-          - label: "REVIEWS (leave empty to hide)"
-            name: "reviews"
-            widget: "list"
-            collapsed: true
-            required: false
-            summary: "{{fields.name}}"
-            fields:
-              - { label: "What they said", name: "quote", widget: "text" }
-              - { label: "Name", name: "name", widget: "string", required: false, hint: "Example: Maria G." }
-              - { label: "Stars (1-5)", name: "stars", widget: "number", value_type: "int", min: 1, max: 5, default: 5, required: false }
-          - label: "Reviews heading"
-            name: "reviewsSection"
+          - label: "Contact section"
+            name: "contact"
             widget: "object"
             collapsed: true
             fields:
               - { label: "Small label", name: "eyebrow", widget: "string" }
               - { label: "Heading", name: "heading", widget: "string" }
+              - { label: "Intro", name: "intro", widget: "text" }
+              - { label: "Label next to the email", name: "emailLabel", widget: "string" }
 
-          # ---------- Quote form ----------
-          - label: "QUOTE FORM: heading and timing note"
+      # ---------------------------------------------------------------
+      - name: "quote-form"
+        label: "13. Quote form wording"
+        file: "content/quote-form.json"
+        format: "json"
+        fields:
+          - label: "Top of the quote form"
             name: "quote"
             widget: "object"
             collapsed: true
@@ -250,28 +408,30 @@ collections:
               - { label: "Intro", name: "intro", widget: "text" }
               - { label: "Timing label", name: "timingLabel", widget: "string" }
               - { label: "Timing note", name: "timingNote", widget: "text" }
-          - label: "QUOTE FORM: \"What's it for?\" choices"
+          - label: "\"What's it for?\" choices"
             name: "purposes"
             widget: "list"
+            label_singular: "choice"
             collapsed: true
-          - label: "QUOTE FORM: artwork question choices"
+          - label: "\"Do you have artwork?\" choices"
             name: "artOptions"
             widget: "list"
+            label_singular: "choice"
             collapsed: true
-          - label: "QUOTE FORM: all other wording"
+          - label: "Every other label and message"
             name: "form"
             widget: "object"
             collapsed: true
             fields:
-              - { label: "Name label", name: "nameLabel", widget: "string" }
-              - { label: "Contact label", name: "contactLabel", widget: "string" }
+              - { label: "Name box label", name: "nameLabel", widget: "string" }
+              - { label: "Contact box label", name: "contactLabel", widget: "string" }
               - { label: "\"What's it for?\" label", name: "purposeLabel", widget: "string" }
               - { label: "Products question", name: "itemsQuestion", widget: "string" }
-              - { label: "Products hint", name: "itemsHint", widget: "text" }
+              - { label: "Products tip", name: "itemsHint", widget: "text" }
               - { label: "Upload label", name: "uploadLabel", widget: "string" }
-              - { label: "Upload hint", name: "uploadHint", widget: "text" }
-              - { label: "Order lines question (products with sizes)", name: "linesQuestionSized", widget: "string" }
-              - { label: "Order lines question (products without sizes)", name: "linesQuestion", widget: "string" }
+              - { label: "Upload tip", name: "uploadHint", widget: "text" }
+              - { label: "Order lines question (with sizes)", name: "linesQuestionSized", widget: "string" }
+              - { label: "Order lines question (no sizes)", name: "linesQuestion", widget: "string" }
               - { label: "Sizes example", name: "sizesHint", widget: "text" }
               - { label: "Size chart link", name: "sizeChartLink", widget: "string" }
               - { label: "Add line button", name: "addLine", widget: "string" }
@@ -292,87 +452,3 @@ collections:
               - { label: "Send button", name: "sendButton", widget: "string" }
               - { label: "Note under Send", name: "sendHint", widget: "text" }
               - { label: "Sent message", name: "sentMessage", widget: "text" }
-
-          # ---------- FAQ and size chart ----------
-          - label: "FAQ: questions and answers"
-            name: "faq"
-            widget: "list"
-            collapsed: true
-            required: false
-            summary: "{{fields.question}}"
-            fields:
-              - { label: "Question", name: "question", widget: "string" }
-              - { label: "Answer", name: "answer", widget: "text" }
-          - label: "FAQ heading"
-            name: "faqSection"
-            widget: "object"
-            collapsed: true
-            fields:
-              - { label: "Small label", name: "eyebrow", widget: "string" }
-              - { label: "Heading", name: "heading", widget: "string" }
-          - label: "SIZE CHART picture (leave empty to hide)"
-            name: "sizeChart"
-            widget: "image"
-            required: false
-            choose_url: false
-          - { label: "Size chart note", name: "sizeChartNote", widget: "text", required: false }
-          - label: "Size chart heading"
-            name: "sizeChartSection"
-            widget: "object"
-            collapsed: true
-            fields:
-              - { label: "Heading", name: "heading", widget: "string" }
-
-          # ---------- Our prints page ----------
-          - label: "OUR PRINTS page wording"
-            name: "prints"
-            widget: "object"
-            collapsed: true
-            fields:
-              - { label: "Small label", name: "eyebrow", widget: "string" }
-              - { label: "Heading", name: "heading", widget: "string" }
-              - { label: "Intro", name: "intro", widget: "text" }
-              - { label: "\"All\" filter button", name: "allLabel", widget: "string" }
-              - { label: "Text above the button at the bottom", name: "ctaText", widget: "string" }
-              - { label: "Button at the bottom", name: "ctaButton", widget: "string" }
-          - label: "OUR PRINTS photos"
-            name: "gallery"
-            widget: "list"
-            collapsed: true
-            summary: "{{fields.name}}"
-            fields:
-              - { label: "Name (shows under the photo)", name: "name", widget: "string" }
-              - label: "Product"
-                name: "kind"
-                widget: "relation"
-                collection: "site"
-                file: "content"
-                search_fields: ["items.*.name"]
-                value_field: "items.*.name"
-                display_fields: ["items.*.name"]
-              - { label: "Photo", name: "photo", widget: "image", required: false, choose_url: false }
-
-          # ---------- Contact and footer ----------
-          - label: "CONTACT section"
-            name: "contact"
-            widget: "object"
-            collapsed: true
-            fields:
-              - { label: "Small label", name: "eyebrow", widget: "string" }
-              - { label: "Heading", name: "heading", widget: "string" }
-              - { label: "Intro", name: "intro", widget: "text" }
-              - { label: "Label next to the email", name: "emailLabel", widget: "string" }
-          - label: "SOCIAL MEDIA links (leave empty to hide)"
-            name: "social"
-            widget: "object"
-            collapsed: true
-            fields:
-              - { label: "Instagram link", name: "instagram", widget: "string", required: false, hint: "Paste the full link, starting with https://" }
-              - { label: "Facebook link", name: "facebook", widget: "string", required: false }
-              - { label: "TikTok link", name: "tiktok", widget: "string", required: false }
-          - label: "FOOTER"
-            name: "footer"
-            widget: "object"
-            collapsed: true
-            fields:
-              - { label: "Tagline", name: "tagline", widget: "string" }
