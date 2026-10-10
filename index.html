@@ -1753,10 +1753,16 @@
     const fd = new FormData();
     fd.append('form-name', 'quote-request');
     fd.append('bot-field', '');
-    fd.append('subject', 'New quote request from ' + p.name);
+    fd.append('subject', 'You got a new quote request from ' + p.name);
     fd.append('name', p.name);
-    fd.append('contact', p.contact);
-    fd.append('summary', p.text + (orderId ? '\n\nSee this order with the shirt mockups and download the artwork:\n' + location.origin + '/admin/orders/' : ''));
+    if (orderId) {
+      // The full order (details, mockups, files) is on the Orders page, so the email is just a heads-up
+      fd.append('summary', 'You got a new quote request from ' + p.name + '. Open your Orders page to see it and send them a price: ' + location.origin + '/admin/orders/');
+    } else {
+      // Backup path: the order service was down, so the email has to carry everything
+      fd.append('contact', p.contact);
+      fd.append('summary', p.text);
+    }
     if (withFiles) FILES.slice(0, 3).forEach((file, i) => fd.append('artwork' + (i + 1), file, file.name));
     const r = await fetch('/', { method: 'POST', body: fd });
     if (!r.ok) throw new Error('Send failed (' + r.status + ')');
