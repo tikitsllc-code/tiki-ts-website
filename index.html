@@ -777,7 +777,7 @@
     const v = pick(el.dataset.c);
     if (typeof v === 'string' && v.trim()) el.textContent = v;
   });
-  if (CONTENT.banner) document.getElementById('hero-banner').src'./'+CONTENT.banner;
+  if (CONTENT.banner) document.getElementById('hero-banner').src = CONTENT.banner;
   const strListTop = v => Array.isArray(v) ? v.map(x => String(x == null ? '' : x).trim()).filter(Boolean) : [];
   /* Site colors and fonts (admin: "Site look") */
   const THEME = CONTENT.theme || {};
