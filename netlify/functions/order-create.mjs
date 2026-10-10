@@ -16,6 +16,6 @@ export default async (req) => {
   const now = new Date();
   const id = now.toISOString().replace(/[-:.TZ]/g, "").slice(0, 14) + "-" + Math.random().toString(36).slice(2, 8);
   const order = { ...data, id, createdAt: now.toISOString(), status: "new", uploads: [] };
-  await getStore("orders").setJSON(id, order);
+  await getStore({ name: "orders", consistency: "strong" }).setJSON(id, order);
   return Response.json({ id });
 };
