@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Tiki T's Orders</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Figtree:wght@400;600;800;900&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --ink: #141414;
+    --soft: #5b5446;
+    --line: #e4dccb;
+    --paper: #ffffff;
+    --bg: #f6f1e4;
+    --pink: #e0268a;
+    --teal: #1aa6a6;
+    --sun: #f5d629;
+    --green: #2f8f2c;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16px/1.5 "Figtree", "Segoe UI", system-ui, sans-serif; }
+  a { color: inherit; }
+  button { font: inherit; }
+  :focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
+
+  .bar { background: var(--ink); color: #fff; position: sticky; top: 0; z-index: 5; }
+  .bar .wrap { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding-block: 12px; }
+  .logo { font: 400 1.6rem/1 "Permanent Marker", cursive; text-decoration: none; }
+  .logo span { color: #6cc8cb; }
+  .bar-title { font-weight: 800; font-size: 1.1rem; }
+  .bar-links { margin-left: auto; display: flex; gap: 10px; flex-wrap: wrap; }
+  .bar-links a, .bar-links button {
+    color: #fff; text-decoration: none; background: transparent; border: 2px solid #ffffff55;
+    border-radius: 999px; padding: 7px 14px; font-weight: 800; font-size: 0.9rem; cursor: pointer;
+  }
+  .bar-links a:hover, .bar-links button:hover { border-color: #fff; }
+
+  .wrap { max-width: 1000px; margin-inline: auto; padding-inline: 16px; }
+  main.wrap { padding-block: 24px 60px; }
+
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .tab {
+    background: var(--paper); border: 2px solid var(--ink); border-radius: 999px;
+    padding: 8px 16px; font-weight: 800; cursor: pointer;
+  }
+  .tab[aria-pressed="true"] { background: var(--ink); color: var(--sun); }
+  .tab .count { display: inline-block; min-width: 1.6em; margin-left: 4px; padding: 0 6px; border-radius: 999px; background: var(--pink); color: #fff; font-size: 0.8rem; }
+
+  .notice { background: var(--paper); border: 2px solid var(--ink); border-radius: 14px; padding: 20px; }
+  .notice h2 { margin: 0 0 6px; font-size: 1.2rem; }
+  .notice p { margin: 0; color: var(--soft); }
+  .notice a.btn { margin-top: 14px; }
+
+  .order {
+    background: var(--paper); border: 2px solid var(--ink); border-radius: 16px;
+    margin-bottom: 18px; overflow: hidden;
+  }
+  .order.is-done { opacity: 0.75; }
+  .order-head {
+    display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center;
+    padding: 14px 18px; border-bottom: 2px solid var(--line);
+  }
+  .who { font-size: 1.25rem; font-weight: 900; }
+  .when { color: var(--soft); font-size: 0.9rem; }
+  .pill { font-weight: 800; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; }
+  .pill.new { background: var(--pink); color: #fff; }
+  .pill.done { background: #d9f0d6; color: var(--green); }
+  .head-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; text-decoration: none; cursor: pointer;
+    background: var(--paper); color: var(--ink); border: 2px solid var(--ink); border-radius: 10px;
+    padding: 7px 12px; font-weight: 800; font-size: 0.88rem;
+  }
+  .btn:hover { background: var(--sun); }
+  .btn.primary { background: var(--ink); color: #fff; }
+  .btn.primary:hover { background: #333; }
+  .btn.danger { border-color: var(--pink); color: var(--pink); }
+  .btn.danger:hover { background: var(--pink); color: #fff; }
+
+  .order-body { padding: 16px 18px 20px; display: grid; gap: 18px; }
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 20px; }
+  .fact small { display: block; color: var(--soft); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+  .fact span { font-weight: 600; overflow-wrap: anywhere; }
+
+  .item { border: 2px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 12px; }
+  .item h3 { margin: 0; font-size: 1.1rem; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .item h3 .total { font-size: 0.9rem; color: var(--soft); font-weight: 600; }
+  .lines { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .lines th { text-align: left; font-size: 0.78rem; color: var(--soft); letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 8px; border-bottom: 1px solid var(--line); }
+  .lines td { padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  .lines td.qty { font-weight: 900; width: 3em; }
+  .table-scroll { overflow-x: auto; }
+  .kv { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 0; }
+  .kv dt { color: var(--soft); font-weight: 800; font-size: 0.9rem; }
+  .kv dd { margin: 0; }
+  .kv ul { margin: 0; padding-left: 18px; }
+
+  .gallery { display: flex; gap: 12px; flex-wrap: wrap; }
+  .file {
+    width: 220px; max-width: 100%; border: 2px solid var(--line); border-radius: 12px; overflow: hidden;
+    display: flex; flex-direction: column; background: #fff;
+  }
+  .file.mockup { width: 340px; }
+  .file .thumb { aspect-ratio: 4 / 3; background: repeating-conic-gradient(#f1ede3 0 25%, #fff 0 50%) 0 0 / 16px 16px; display: grid; place-items: center; }
+  .file.mockup .thumb { aspect-ratio: 1312 / 672; background: #fff; }
+  .file .thumb img { width: 100%; height: 100%; object-fit: contain; }
+  .file .thumb .ext { font-weight: 900; color: var(--soft); }
+  .file .meta { padding: 8px 10px; display: flex; gap: 8px; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); }
+  .file .meta span { font-size: 0.82rem; overflow-wrap: anywhere; }
+  .section-label { margin: 0 0 8px; font-size: 0.78rem; color: var(--soft); font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  details.full summary { cursor: pointer; font-weight: 800; color: var(--soft); }
+  details.full pre { white-space: pre-wrap; font: 400 0.9rem/1.5 "Figtree", sans-serif; background: var(--bg); padding: 12px; border-radius: 10px; margin: 8px 0 0; }
+
+  .confirm { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-weight: 800; color: var(--pink); }
+  .empty { text-align: center; color: var(--soft); padding: 40px 0; }
+  @media (max-width: 560px) {
+    .head-actions { margin-left: 0; width: 100%; }
+    .file, .file.mockup { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="wrap">
+    <a class="logo" href="/">Tiki <span>T's</span></a>
+    <span class="bar-title">Orders</span>
+    <div class="bar-links">
+      <button type="button" id="refresh">Refresh</button>
+      <a href="/admin/">Edit my website</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="tabs" role="group" aria-label="Show orders">
+    <button class="tab" type="button" data-show="new" aria-pressed="true">New <span class="count" id="count-new">0</span></button>
+    <button class="tab" type="button" data-show="done" aria-pressed="false">Done</button>
+    <button class="tab" type="button" data-show="all" aria-pressed="false">All</button>
+  </div>
+  <div id="message" class="notice" hidden></div>
+  <div id="orders" aria-live="polite"></div>
+</main>
+
+<script>
+  const FN = '/.netlify/functions/';
+  let ORDERS = [];
+  let SHOW = 'new';
+  const blobUrls = new Map();
+
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  // The admin keeps the GitHub login in this browser after you sign in at /admin
+  function token() {
+    for (const k of ['decap-cms-user', 'netlify-cms-user']) {
+      try { const u = JSON.parse(localStorage.getItem(k) || 'null'); if (u && u.token) return u.token; } catch (e) { /* ignore */ }
+    }
+    return null;
+  }
+  const authed = (path, opts = {}) => fetch(FN + path, { ...opts, headers: { ...(opts.headers || {}), Authorization: 'Bearer ' + token() } });
+
+  function showMessage(title, text, link) {
+    const m = document.getElementById('message');
+    m.innerHTML = '<h2>' + esc(title) + '</h2><p>' + esc(text) + '</p>' + (link ? '<a class="btn primary" href="' + link.href + '">' + esc(link.label) + '</a>' : '');
+    m.hidden = false;
+    document.getElementById('orders').innerHTML = '';
+  }
+
+  async function load() {
+    document.getElementById('message').hidden = true;
+    if (!token()) {
+      showMessage('Log in first', 'Open your admin, click Login with GitHub, then come back to this page.', { href: '/admin/', label: 'Go to the admin' });
+      return;
+    }
+    document.getElementById('orders').innerHTML = '<p class="empty">Loading orders...</p>';
+    let res;
+    try { res = await authed('orders'); } catch (e) { res = null; }
+    if (!res || res.status === 404) {
+      showMessage('Orders aren\'t set up yet', 'The order system isn\'t running on this site yet. Once it\'s published, new quote requests will show up here.');
+      return;
+    }
+    if (res.status === 401) {
+      showMessage('Log in again', 'Your admin login has expired. Open the admin, log in with GitHub, then come back.', { href: '/admin/', label: 'Go to the admin' });
+      return;
+    }
+    if (!res.ok) { showMessage('Couldn\'t load orders', 'Something went wrong. Try Refresh in a minute.'); return; }
+    ORDERS = await res.json();
+    render();
+  }
+
+  function fmtDate(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) + ' at ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  }
+
+  function itemHtml(it) {
+    const lines = (it.lines || []).map(l =>
+      '<tr><td class="qty">' + esc(l.qty) + '</td><td>' + esc(l.color || '-') + '</td><td>' + esc(l.style || '') + '</td><td>' + esc([l.fit, l.size].filter(Boolean).join(' ')) + '</td></tr>').join('');
+    const places = (it.placements || []).map(p => '<li>' + esc(p.spot) + (p.size ? ' <span style="color:var(--soft)">(' + esc(p.size) + ')</span>' : '') + '</li>').join('');
+    const kv = [
+      ['Print on', places ? '<ul>' + places + '</ul>' : 'Not sure yet'],
+      ['Print method', esc(it.method || '-')],
+      it.material ? ['Material', esc(it.material)] : null,
+      it.extra && it.extra.answer ? [esc(it.extra.question), esc(it.extra.answer)] : null,
+      it.notes ? ['Design details', esc(it.notes)] : null
+    ].filter(Boolean).map(([k, v]) => '<dt>' + k + '</dt><dd>' + v + '</dd>').join('');
+    return '<div class="item"><h3>' + esc(it.product) + ' <span class="total">' + esc(it.total) + ' total</span></h3>' +
+      (lines ? '<div class="table-scroll"><table class="lines"><thead><tr><th>Qty</th><th>Color</th><th>Style</th><th>Size</th></tr></thead><tbody>' + lines + '</tbody></table></div>' : '') +
+      '<dl class="kv">' + kv + '</dl></div>';
+  }
+
+  function fileHtml(u) {
+    const ext = (u.name.split('.').pop() || 'file').toUpperCase();
+    const isImg = /^image\//.test(u.type);
+    return '<div class="file' + (u.kind === 'mockup' ? ' mockup' : '') + '">' +
+      '<div class="thumb">' + (isImg ? '<img data-key="' + esc(u.key) + '" alt="' + esc(u.name) + '">' : '<span class="ext">' + esc(ext) + '</span>') + '</div>' +
+      '<div class="meta"><span>' + esc(u.name) + '</span><button type="button" class="btn" data-download="' + esc(u.key) + '" data-name="' + esc(u.name) + '">Download</button></div></div>';
+  }
+
+  function orderHtml(o) {
+    const mockups = (o.uploads || []).filter(u => u.kind === 'mockup');
+    const art = (o.uploads || []).filter(u => u.kind !== 'mockup');
+    const done = o.status === 'done';
+    return '<article class="order' + (done ? ' is-done' : '') + '" data-id="' + esc(o.id) + '">' +
+      '<div class="order-head">' +
+        '<span class="who">' + esc(o.name) + '</span>' +
+        '<span class="pill ' + (done ? 'done' : 'new') + '">' + (done ? 'Done' : 'New') + '</span>' +
+        '<span class="when">' + esc(fmtDate(o.createdAt)) + '</span>' +
+        '<div class="head-actions">' +
+          '<button type="button" class="btn" data-status="' + (done ? 'new' : 'done') + '">' + (done ? 'Move back to New' : 'Mark as done') + '</button>' +
+          '<button type="button" class="btn danger" data-delete>Delete</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="order-body">' +
+        '<div class="facts">' +
+          '<div class="fact"><small>Contact</small><span>' + esc(o.contact) + '</span></div>' +
+          '<div class="fact"><small>What it\'s for</small><span>' + esc(o.purpose || '-') + '</span></div>' +
+          '<div class="fact"><small>Artwork</small><span>' + esc(o.artwork || '-') + '</span></div>' +
+        '</div>' +
+        (o.items || []).map(itemHtml).join('') +
+        (mockups.length ? '<div><p class="section-label">Where they put the design</p><div class="gallery">' + mockups.map(fileHtml).join('') + '</div></div>' : '') +
+        (art.length ? '<div><p class="section-label">Their files (ready to print)</p><div class="gallery">' + art.map(fileHtml).join('') + '</div></div>' : '') +
+        (o.text ? '<details class="full"><summary>Show the full message</summary><pre>' + esc(o.text) + '</pre></details>' : '') +
+      '</div></article>';
+  }
+
+  function render() {
+    const counts = { new: ORDERS.filter(o => o.status !== 'done').length };
+    document.getElementById('count-new').textContent = counts.new;
+    const list = ORDERS.filter(o => SHOW === 'all' || (SHOW === 'done' ? o.status === 'done' : o.status !== 'done'));
+    const box = document.getElementById('orders');
+    box.innerHTML = list.length ? list.map(orderHtml).join('')
+      : '<p class="empty">' + (SHOW === 'new' ? 'No new orders right now.' : 'Nothing here yet.') + '</p>';
+    box.querySelectorAll('img[data-key]').forEach(loadImage);
+  }
+
+  async function fileBlob(key) {
+    if (blobUrls.has(key)) return blobUrls.get(key);
+    const res = await authed('order-file-get?key=' + encodeURIComponent(key));
+    if (!res.ok) throw new Error('file ' + res.status);
+    const url = URL.createObjectURL(await res.blob());
+    blobUrls.set(key, url);
+    return url;
+  }
+  async function loadImage(img) {
+    try { img.src = await fileBlob(img.dataset.key); } catch (e) { img.replaceWith(Object.assign(document.createElement('span'), { className: 'ext', textContent: 'Can\'t show' })); }
+  }
+
+  document.getElementById('orders').addEventListener('click', async e => {
+    const card = e.target.closest('.order');
+    if (!card) return;
+    const id = card.dataset.id;
+    const dl = e.target.closest('[data-download]');
+    if (dl) {
+      dl.textContent = 'Getting it...';
+      try {
+        const a = document.createElement('a');
+        a.href = await fileBlob(dl.dataset.download);
+        a.download = dl.dataset.name;
+        document.body.appendChild(a); a.click(); a.remove();
+        dl.textContent = 'Download';
+      } catch (err) { dl.textContent = 'Try again'; }
+      return;
+    }
+    const st = e.target.closest('[data-status]');
+    if (st) {
+      st.disabled = true;
+      const res = await authed('orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, action: 'status', status: st.dataset.status }) });
+      if (res.ok) { const updated = await res.json(); ORDERS = ORDERS.map(o => o.id === id ? updated : o); render(); }
+      else st.disabled = false;
+      return;
+    }
+    if (e.target.closest('[data-delete]')) {
+      const actions = card.querySelector('.head-actions');
+      actions.innerHTML = '<span class="confirm">Delete this order and its files for good? ' +
+        '<button type="button" class="btn danger" data-confirm-delete>Yes, delete</button>' +
+        '<button type="button" class="btn" data-cancel>Keep it</button></span>';
+      return;
+    }
+    if (e.target.closest('[data-cancel]')) { render(); return; }
+    if (e.target.closest('[data-confirm-delete]')) {
+      const res = await authed('orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, action: 'delete' }) });
+      if (res.ok) { ORDERS = ORDERS.filter(o => o.id !== id); render(); }
+    }
+  });
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+    SHOW = t.dataset.show;
+    document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-pressed', String(x === t)));
+    render();
+  }));
+  document.getElementById('refresh').addEventListener('click', load);
+  load();
+</script>
+</body>
+</html>
