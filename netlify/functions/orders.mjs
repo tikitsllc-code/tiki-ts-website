@@ -18,7 +18,7 @@ async function isShopOwner(req) {
 
 export default async (req) => {
   if (!(await isShopOwner(req))) return new Response("Please log in to the admin first", { status: 401 });
-  const orders = getStore("orders");
+  const orders = getStore({ name: "orders", consistency: "strong" });
 
   if (req.method === "GET") {
     const { blobs } = await orders.list();
@@ -36,7 +36,7 @@ export default async (req) => {
     if (!order) return new Response("Order not found", { status: 404 });
 
     if (body.action === "delete") {
-      const files = getStore("order-files");
+      const files = getStore({ name: "order-files", consistency: "strong" });
       await Promise.all((order.uploads || []).map((u) => files.delete(u.key)));
       await orders.delete(id);
       return Response.json({ ok: true });
