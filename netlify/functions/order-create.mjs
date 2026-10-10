@@ -15,7 +15,9 @@ export default async (req) => {
   }
   const now = new Date();
   const id = now.toISOString().replace(/[-:.TZ]/g, "").slice(0, 14) + "-" + Math.random().toString(36).slice(2, 8);
-  const order = { ...data, id, createdAt: now.toISOString(), status: "new", uploads: [] };
+  // key: a private code for the link the customer uses to accept or decline the price
+  const key = crypto.randomUUID().replace(/-/g, "");
+  const order = { ...data, id, key, createdAt: now.toISOString(), status: "new", uploads: [] };
   await getStore({ name: "orders", consistency: "strong" }).setJSON(id, order);
   return Response.json({ id });
 };
