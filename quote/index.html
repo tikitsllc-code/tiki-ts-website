@@ -96,7 +96,9 @@
   }
 
   function render(o) {
-    const answered = o.response && o.response.answer;
+    // With card payments on, a yes isn't finished until they've paid
+    const answered = o.paid || (o.response && o.response.answer && !(o.canPay && o.response.answer === 'accept'));
+    const saidYesUnpaid = o.canPay && !o.paid && o.response && o.response.answer === 'accept';
     app.innerHTML =
       '<div><h1>Hi ' + esc(firstName(o.name)) + ', here\'s your quote!</h1>' +
       '<p class="lede">Thanks for your order request from ' + esc(fmtDate(o.createdAt)) + '. Take a look and let us know if you\'d like us to go ahead.</p></div>' +
@@ -108,16 +110,18 @@
       (answered ? answeredHtml(o) :
         '<section class="card answer"><label for="msg">Anything you want to tell us? (optional)</label>' +
         '<textarea id="msg" placeholder="Questions, changes, when you need it..."></textarea>' +
-        '<div class="buttons"><button class="btn yes" id="yes" type="button">Yes, let\'s do it!</button>' +
+        (saidYesUnpaid ? '<p style="margin:0;font-weight:800">You said yes! Finish paying below and we\'ll start on your order.</p>' : '') +
+        '<div class="buttons"><button class="btn yes" id="yes" type="button">' + (o.canPay ? 'Yes, pay now (' + esc(o.quote.price) + ')' : 'Yes, let\'s do it!') + '</button>' +
         '<button class="btn no" id="no" type="button">No thanks</button></div>' +
         '<p class="error" id="err" hidden></p>' +
-        '<p class="small">Nothing gets printed until you say yes.</p></section>');
+        '<p class="small">' + (o.canPay ? 'You\'ll pay securely by card on the next page. Nothing gets printed until it\'s paid.' : 'Nothing gets printed until you say yes.') + '</p></section>');
     if (!answered) {
       document.getElementById('yes').addEventListener('click', () => answer('accept', o));
       document.getElementById('no').addEventListener('click', () => answer('decline', o));
     }
   }
   function answeredHtml(o) {
+    if (o.paid) return '<section class="card done-box yes-box"><h2>Payment received! 🌺</h2><p>Thanks! You paid ' + esc('$' + (o.paid.amountCents / 100).toFixed(2)) + '. We\'re starting on your order and will reach out about pickup or delivery.</p></section>';
     const yes = o.response.answer === 'accept';
     return '<section class="card done-box' + (yes ? ' yes-box' : '') + '">' +
       (yes ? '<h2>You\'re all set! 🌺</h2><p>Thanks! We got your yes and will get started. We\'ll reach out about payment and pickup or delivery.</p>'
@@ -129,6 +133,20 @@
     const err = document.getElementById('err');
     const msg = document.getElementById('msg').value;
     document.querySelectorAll('.btn').forEach(b => { b.disabled = true; });
+    if (choice === 'accept' && o.canPay) {
+      // Off to Stripe's secure checkout page
+      try {
+        const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'pay', message: msg }) });
+        const data = await res.json();
+        if (!res.ok || !data.url) throw new Error('pay');
+        location.href = data.url;
+      } catch (e) {
+        document.querySelectorAll('.btn').forEach(b => { b.disabled = false; });
+        err.textContent = 'We couldn\'t open the payment page. Please try again in a minute.';
+        err.hidden = false;
+      }
+      return;
+    }
     try {
       const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ answer: choice, message: msg }) });
       if (!res.ok) throw new Error(res.status);
@@ -152,9 +170,23 @@
 
   (async () => {
     try {
-      const res = await fetch(API);
+      const back = new URLSearchParams(location.search).get('session_id');
+      const res = await fetch(API + (back ? '&session_id=' + encodeURIComponent(back) : ''));
       if (!res.ok) throw new Error(res.status);
-      render(await res.json());
+      const o = await res.json();
+      render(o);
+      if (o.justPaid) {
+        // short email alert to the shop
+        const fd = new FormData();
+        fd.append('form-name', 'quote-response');
+        fd.append('bot-field', '');
+        fd.append('subject', 'PAID: ' + o.name + ' paid $' + (o.paid.amountCents / 100).toFixed(2));
+        fd.append('name', o.name);
+        fd.append('answer', 'Paid $' + (o.paid.amountCents / 100).toFixed(2) + ' by card. Ready to print. See it on your Orders page: ' + location.origin + '/admin/orders/');
+        fd.append('message', '');
+        fetch('/', { method: 'POST', body: fd }).catch(() => {});
+      }
+      if (back) history.replaceState(null, '', location.pathname + '?id=' + encodeURIComponent(id) + '&k=' + encodeURIComponent(k));
     } catch (e) {
       app.innerHTML = '<section class="card"><h2 style="margin-top:0">We couldn\'t find that quote</h2><p>Please check the link we sent you, or reach out to us and we\'ll help.</p></section>';
     }
