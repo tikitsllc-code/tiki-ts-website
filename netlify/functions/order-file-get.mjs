@@ -19,7 +19,7 @@ export default async (req) => {
   if (!(await isShopOwner(req))) return new Response("Please log in to the admin first", { status: 401 });
   const key = new URL(req.url).searchParams.get("key") || "";
   if (!/^\d{14}-[a-z0-9]{6}\/\d+-[\w.\- ]+$/.test(key)) return new Response("Bad file", { status: 400 });
-  const found = await getStore("order-files").getWithMetadata(key, { type: "arrayBuffer" });
+  const found = await getStore({ name: "order-files", consistency: "strong" }).getWithMetadata(key, { type: "arrayBuffer" });
   if (!found) return new Response("File not found", { status: 404 });
   const meta = found.metadata || {};
   return new Response(found.data, {
