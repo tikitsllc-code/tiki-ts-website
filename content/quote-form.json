@@ -47,7 +47,7 @@
     "reviewHeading": "Check your request, then hit Send:",
     "sendButton": "Send quote request",
     "sendHint": "Your request and any artwork you uploaded go straight to Tiki T's.",
-    "sentMessage": "Your quote request is on its way to Tiki T's. We'll get back to you soon.",
+    "sentMessage": "Thanks! We got your quote request. We'll email you your quote with the price as soon as we see it.",
     "styleLabel": "Style"
   }
 }
