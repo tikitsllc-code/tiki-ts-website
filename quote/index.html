@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Your Tiki T's Quote</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Figtree:wght@400;600;800;900&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --ink: #141414;
+    --soft: #5b5446;
+    --line: #e4dccb;
+    --sand: #f7e7b8;
+    --paper: #fffdf6;
+    --pink: #e0268a;
+    --teal: #6cc8cb;
+    --sun: #f5d629;
+    --green: #2f8f2c;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--sand); color: var(--ink); font: 400 17px/1.55 "Figtree", "Segoe UI", system-ui, sans-serif; }
+  :focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
+  .bar { background: var(--ink); }
+  .bar .wrap { padding-block: 14px; }
+  .logo { color: #fff; text-decoration: none; font: 400 1.7rem/1 "Permanent Marker", cursive; }
+  .logo span { color: var(--teal); }
+  .wrap { max-width: 720px; margin-inline: auto; padding-inline: 16px; }
+  main.wrap { padding-block: 28px 60px; display: grid; gap: 20px; }
+  h1 { margin: 0; font: 400 clamp(2rem, 6vw, 2.8rem)/1.1 "Permanent Marker", cursive; text-wrap: balance; }
+  .lede { margin: 0; color: var(--soft); }
+  .card { background: var(--paper); border: 3px solid var(--ink); border-radius: 18px; padding: 20px; box-shadow: 5px 5px 0 var(--ink); }
+  .price-card { text-align: center; }
+  .price-label { font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.8rem; color: var(--soft); }
+  .price { font: 400 clamp(2.6rem, 10vw, 3.6rem)/1.1 "Permanent Marker", cursive; color: var(--pink); margin: 4px 0; }
+  .note { margin: 6px 0 0; white-space: pre-wrap; }
+  .item { border-top: 2px solid var(--line); padding-top: 12px; margin-top: 12px; }
+  .item:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+  .item h3 { margin: 0 0 6px; }
+  .item ul { margin: 0; padding-left: 20px; }
+  .item p { margin: 4px 0 0; color: var(--soft); }
+  .mockups { display: grid; gap: 12px; margin-top: 12px; }
+  .mockups img { width: 100%; border: 2px solid var(--line); border-radius: 12px; background: #fff; }
+  .answer { display: grid; gap: 12px; }
+  .answer label { font-weight: 800; }
+  textarea { font: inherit; width: 100%; min-height: 90px; padding: 10px 12px; border: 2px solid var(--ink); border-radius: 10px; background: #fff; }
+  .buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn {
+    font: 900 1.05rem/1 "Figtree", sans-serif; cursor: pointer;
+    padding: 16px 22px; border: 3px solid var(--ink); border-radius: 14px; box-shadow: 4px 4px 0 var(--ink);
+  }
+  .btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+  .yes { background: var(--pink); color: #fff; }
+  .no { background: #fff; color: var(--ink); }
+  .btn:disabled { opacity: 0.6; cursor: default; }
+  .done-box { text-align: center; }
+  .done-box h2 { margin: 0 0 6px; }
+  .done-box.yes-box { border-color: var(--green); box-shadow: 5px 5px 0 var(--green); }
+  .error { color: #a3004f; font-weight: 800; margin: 0; }
+  .small { font-size: 0.9rem; color: var(--soft); }
+</style>
+</head>
+<body>
+<header class="bar"><div class="wrap"><a class="logo" href="/">Tiki <span>T's</span></a></div></header>
+<main class="wrap" id="app">
+  <p class="lede">Loading your quote...</p>
+</main>
+
+<!-- Netlify Forms reads this hidden form so the shop gets an email when a customer answers. -->
+<form name="quote-response" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input name="bot-field"><input name="subject"><input name="name"><input name="answer"><textarea name="message"></textarea>
+</form>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id') || '', k = params.get('k') || '';
+  const API = '/.netlify/functions/quote?id=' + encodeURIComponent(id) + '&k=' + encodeURIComponent(k);
+  const app = document.getElementById('app');
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const firstName = n => String(n || '').trim().split(/\s+/)[0] || 'there';
+  const fmtDate = iso => new Date(iso).toLocaleDateString(undefined, { month: 'long', day: 'numeric' });
+
+  function itemsHtml(o) {
+    return (o.items || []).map(it => {
+      const lines = (it.lines || []).map(l => '<li>' + esc(l.qty) + ' x ' + esc([l.color, l.style, [l.fit, l.size].filter(Boolean).join(' ')].filter(Boolean).join(', ')) + '</li>').join('');
+      const spots = (it.placements || []).map(p => esc(p.spot) + (p.size ? ' (' + esc(p.size) + ')' : '')).join(', ');
+      return '<div class="item"><h3>' + esc(it.product) + ' (' + esc(it.total) + ')</h3>' +
+        (lines ? '<ul>' + lines + '</ul>' : '') +
+        (spots ? '<p>Print on: ' + spots + '</p>' : '') +
+        (it.method ? '<p>Print method: ' + esc(it.method) + '</p>' : '') + '</div>';
+    }).join('');
+  }
+
+  function render(o) {
+    const answered = o.response && o.response.answer;
+    app.innerHTML =
+      '<div><h1>Hi ' + esc(firstName(o.name)) + ', here\'s your quote!</h1>' +
+      '<p class="lede">Thanks for your order request from ' + esc(fmtDate(o.createdAt)) + '. Take a look and let us know if you\'d like us to go ahead.</p></div>' +
+      '<section class="card price-card"><div class="price-label">Your price</div><div class="price">' + esc(o.quote.price) + '</div>' +
+        (o.quote.note ? '<p class="note">' + esc(o.quote.note) + '</p>' : '') + '</section>' +
+      '<section class="card"><h2 style="margin:0 0 10px">Your order</h2>' + itemsHtml(o) +
+        (o.mockups.length ? '<div class="mockups">' + o.mockups.map(m => '<img alt="Where your design goes" src="' + API + '&file=' + encodeURIComponent(m.key) + '">').join('') + '</div>' : '') +
+      '</section>' +
+      (answered ? answeredHtml(o) :
+        '<section class="card answer"><label for="msg">Anything you want to tell us? (optional)</label>' +
+        '<textarea id="msg" placeholder="Questions, changes, when you need it..."></textarea>' +
+        '<div class="buttons"><button class="btn yes" id="yes" type="button">Yes, let\'s do it!</button>' +
+        '<button class="btn no" id="no" type="button">No thanks</button></div>' +
+        '<p class="error" id="err" hidden></p>' +
+        '<p class="small">Nothing gets printed until you say yes.</p></section>');
+    if (!answered) {
+      document.getElementById('yes').addEventListener('click', () => answer('accept', o));
+      document.getElementById('no').addEventListener('click', () => answer('decline', o));
+    }
+  }
+  function answeredHtml(o) {
+    const yes = o.response.answer === 'accept';
+    return '<section class="card done-box' + (yes ? ' yes-box' : '') + '">' +
+      (yes ? '<h2>You\'re all set! 🌺</h2><p>Thanks! We got your yes and will get started. We\'ll reach out about payment and pickup or delivery.</p>'
+           : '<h2>Thanks for letting us know</h2><p>No problem at all. If you change your mind or want to try something different, just send us a new request.</p>') +
+      '</section>';
+  }
+
+  async function answer(choice, o) {
+    const err = document.getElementById('err');
+    const msg = document.getElementById('msg').value;
+    document.querySelectorAll('.btn').forEach(b => { b.disabled = true; });
+    try {
+      const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ answer: choice, message: msg }) });
+      if (!res.ok) throw new Error(res.status);
+      const updated = await res.json();
+      // short email alert to the shop
+      const fd = new FormData();
+      fd.append('form-name', 'quote-response');
+      fd.append('bot-field', '');
+      fd.append('subject', (choice === 'accept' ? 'YES: ' : 'No: ') + o.name + (choice === 'accept' ? ' accepted your price' : ' said no thanks'));
+      fd.append('name', o.name);
+      fd.append('answer', (choice === 'accept' ? 'Accepted ' : 'Declined ') + o.quote.price + '. See it on your Orders page: ' + location.origin + '/admin/orders/');
+      fd.append('message', msg);
+      fetch('/', { method: 'POST', body: fd }).catch(() => {});
+      render(updated);
+    } catch (e) {
+      document.querySelectorAll('.btn').forEach(b => { b.disabled = false; });
+      err.textContent = 'That didn\'t go through. Please check your connection and try again.';
+      err.hidden = false;
+    }
+  }
+
+  (async () => {
+    try {
+      const res = await fetch(API);
+      if (!res.ok) throw new Error(res.status);
+      render(await res.json());
+    } catch (e) {
+      app.innerHTML = '<section class="card"><h2 style="margin-top:0">We couldn\'t find that quote</h2><p>Please check the link we sent you, or reach out to us and we\'ll help.</p></section>';
+    }
+  })();
+</script>
+</body>
+</html>
