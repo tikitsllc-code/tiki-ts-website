@@ -151,6 +151,11 @@ collections:
                 name: "printSpots"
                 widget: "list"
                 hint: "Buttons customers can tap. Front, Back, Left chest, Right chest, Left sleeve, Right sleeve, Back of neck and Hood also have a spot on the picture."
+              - label: "Styles customers can pick"
+                name: "styles"
+                widget: "list"
+                required: false
+                hint: "Like Round neck, V-neck, Polo. Type them separated by commas. Leave empty if this product has no styles."
               - label: "This product's colors"
                 name: "colors"
                 widget: "list"
@@ -435,6 +440,7 @@ collections:
               - { label: "Sizes example", name: "sizesHint", widget: "text" }
               - { label: "Size chart link", name: "sizeChartLink", widget: "string" }
               - { label: "Add line button", name: "addLine", widget: "string" }
+              - { label: "Style label", name: "styleLabel", widget: "string", required: false }
               - { label: "\"Other color\" choice", name: "otherColor", widget: "string" }
               - { label: "Print spot question (with picture)", name: "spotsQuestion", widget: "text" }
               - { label: "Print spot question (no picture)", name: "spotsQuestionNoPicture", widget: "string" }
