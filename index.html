@@ -331,6 +331,8 @@
   .tool-remove { border-color: var(--hibiscus); color: var(--hibiscus); }
   .tool-remove:hover { background: var(--hibiscus); color: #fff; }
   .placer-summary { margin: 0; font-size: 0.92rem; }
+  .spot-size { color: var(--ink-soft); font-size: 0.85rem; }
+  .tool-size { flex-basis: 100%; font-size: 0.85rem; color: var(--ink-soft); }
   .view-label { font: 800 4.6px/1 var(--body); letter-spacing: .14em; fill: var(--ink-soft); text-anchor: middle; }
   @media (prefers-reduced-motion: reduce) { .garment { transition: none; } .tray-tiki { animation: none; } }
   /* Starting prices */
@@ -443,8 +445,9 @@
   .color-sum { font-weight: 800; }
   .color-sum strong { color: var(--hibiscus); font-size: 1.1rem; }
   .color-rows.sized .color-row { grid-template-columns: auto minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 0.8fr) 96px auto; }
+  .color-rows[style] .color-row { grid-template-columns: var(--cols); }
   @media (max-width: 700px) {
-    .color-row, .color-rows.sized .color-row { grid-template-columns: 1fr 1fr; }
+    .color-row, .color-rows.sized .color-row, .color-rows[style] .color-row { grid-template-columns: 1fr 1fr; }
     .color-row .dot { display: none; }
     .color-row .cname-field { grid-column: 1 / -1; }
     .color-rows:not(.sized) .color-row .cqty-field { grid-column: 1; }
@@ -643,7 +646,7 @@
 
         <div class="field full upload-field">
           <label for="q-files" data-c="form.uploadLabel">Upload your design (optional)</label>
-          <p class="hint" data-c="form.uploadHint">Logos, photos, sketches or examples you like. Up to 3 files, 8 MB total. If you upload a picture, it shows up on the shirt below so you can drag it where you want it.</p>
+          <p class="hint" data-c="form.uploadHint">Logos, photos, sketches or examples you like. Up to 5 files. Big photos are shrunk automatically so they send. If you upload a picture, it shows up on the shirt below so you can drag it where you want it.</p>
           <label class="upload-drop" for="q-files">
             <span class="upload-icon" aria-hidden="true">+</span>
             <span><b>Tap to pick files</b> or drop them here</span>
@@ -950,6 +953,7 @@
     notesPh: String(it.detailsPlaceholder || 'What goes on it, text, names, colors, the look you want...'),
     cardTitle: String(it.cardTitle || it.name),
     cardText: String(it.cardText || ''),
+    styles: strList(it.styles),
     onCard: it.showCard !== false
   }));
   const colorsFor = it => it.colors.length ? it.colors : COLORS;
@@ -1124,6 +1128,7 @@
           '<button type="button" class="tool" data-act="smaller" aria-label="Make smaller">&minus; Smaller</button>' +
           '<button type="button" class="tool" data-act="bigger" aria-label="Make bigger">+ Bigger</button>' +
           '<button type="button" class="tool tool-remove" data-act="remove">Remove</button>' +
+          '<span class="tool-size"></span>' +
         '</div>' +
         '<p class="placer-summary" aria-live="polite"></p>' +
       '</div></div>';
@@ -1139,7 +1144,8 @@
         '<input id="extra-' + it.key + '" placeholder="' + escT(it.extra.ph) + '"></div>' : '') +
       '<fieldset class="group"><legend>' + escT(it.sized ? txt(FORM.linesQuestionSized, 'What do you need? Add one line for each color and size.') : txt(FORM.linesQuestion, 'What do you need? Add one line for each color.')) + '</legend>' +
         (it.sized ? '<p class="hint">' + escT(txt(FORM.sizesHint, 'Example: 2 black men\'s L on one line, 3 white women\'s M on the next, 1 orange kids S on the next. Kids sizes are youth sizes.')) + (CONTENT.sizeChart ? ' <a href="#faq">' + escT(txt(FORM.sizeChartLink, 'See the size chart')) + '</a>.' : '') + '</p>' : '') +
-        '<div class="color-rows' + (it.sized ? ' sized' : '') + '" id="colors-' + it.key + '"></div>' +
+        '<div class="color-rows' + (it.sized ? ' sized' : '') + '" id="colors-' + it.key + '" style="--cols: auto minmax(0, 1.5fr)' +
+          (it.styles.length ? ' minmax(0, 1.1fr)' : '') + (it.sized ? ' minmax(0, 1fr) minmax(0, 0.8fr)' : '') + ' 96px auto"></div>' +
         '<div class="color-foot"><button type="button" class="add-color" data-item="' + it.key + '">' + escT(txt(FORM.addLine, '+ Add another line')) + '</button>' +
         '<span class="color-sum">' + escT(it.label) + ' total: <strong id="csum-' + it.key + '">0</strong></span></div>' +
       '</fieldset>' +
@@ -1174,6 +1180,10 @@
         '<select id="cname-' + n + '" class="cname"><option value="">Pick a color</option>' +
         colorsFor(it).map(c => '<option>' + escT(c.name) + '</option>').join('') + '<option value="other">' + escT(txt(FORM.otherColor, 'Other color')) + '</option></select>' +
         '<input class="cother" id="cother-' + n + '" placeholder="Which color?" aria-label="Which color?" hidden></div>' +
+      (it.styles.length
+        ? '<div class="field"><label for="cstyle-' + n + '">' + escT(txt(FORM.styleLabel, 'Style')) + '</label><select id="cstyle-' + n + '" class="cstyle"><option value="">' + escT(txt(FORM.styleLabel, 'Style')) + '</option>' +
+            it.styles.map(s => '<option>' + escT(s) + '</option>').join('') + '</select></div>'
+        : '') +
       (it.sized
         ? '<div class="field"><label for="cfit-' + n + '">Fit</label><select id="cfit-' + n + '" class="cfit"><option value="">Fit</option>' +
             FITS.map(f => '<option value="' + f.key + '">' + f.label + '</option>').join('') + '</select></div>' +
@@ -1204,7 +1214,9 @@
     const fitSel = r.querySelector('.cfit');
     const fit = fitSel ? FITS.find(f => f.key === fitSel.value) : null;
     const sizeSel = r.querySelector('.csize');
+    const styleSel = r.querySelector('.cstyle');
     return {
+      style: styleSel ? styleSel.value : '',
       color: sel === 'other' ? (r.querySelector('.cother').value.trim() || 'Other color') : sel,
       fit: fit ? fit.label : '',
       size: sizeSel ? sizeSel.value : '',
@@ -1227,15 +1239,24 @@
   const TIKI_RATIO = 26 / 20;
 
   /* ---------- Uploaded artwork ----------
-     Customers can attach up to 3 files (8 MB total). The picked picture replaces the tiki
+     Customers can attach up to 5 files. The picked picture replaces the tiki
      on the shirt so they can place their real design. */
-  const MAX_FILES = 3, MAX_BYTES = 8 * 1024 * 1024;
+  const MAX_FILES = 5;
   let FILES = [];
   let ART = null; // { file, url, ratio } shown on the shirt
   const ratio = () => ART ? ART.ratio : TIKI_RATIO;
   const markFor = (key, x, y, w, h) => ART
     ? '<image href="' + ART.url + '" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" preserveAspectRatio="xMidYMid meet"/>'
     : '<use href="#tiki-mark-' + key + '" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '"/>';
+  /* Real-world size: how many inches one unit of the 72 x 64 drawing is on that product.
+     Designs can't be printed bigger than 12.5" wide x 24" tall. */
+  const IN_PER_UNIT = { tshirt: 0.45, hoodie: 0.45, bag: 0.35 };
+  const MAX_W_IN = 12.5, MAX_H_IN = 24;
+  const unitIn = key => IN_PER_UNIT[(ITEM[key] || {}).picture] || 0.45;
+  const maxS = key => Math.min(MAX_W_IN / unitIn(key), MAX_H_IN / unitIn(key) / ratio(), 60);
+  const roundHalf = v => String(Math.round(v * 2) / 2).replace(/\.0$/, '');
+  const sizeIn = (key, t) => ({ w: t.s * unitIn(key), h: t.s * ratio() * unitIn(key) });
+  const sizeLabel = (key, t) => { const z = sizeIn(key, t); return 'about ' + roundHalf(z.w) + '" wide x ' + roundHalf(z.h) + '" tall'; };
   const isPicture = f => /^image\/(png|jpe?g|gif|webp|svg\+xml)$/.test(f.type);
   const fmtSize = b => b > 1024 * 1024 ? (b / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
   const urls = new Map();
@@ -1260,7 +1281,7 @@
       if (h > 20.8) { h = 20.8; w = h / ratio(); }
       g.innerHTML = markFor(key, 17 - w / 2, 37.4 - h / 2, w, h);
     });
-    Object.keys(TIKIS).forEach(key => { (TIKIS[key] || []).forEach(clampTiki); renderTikis(key); });
+    Object.keys(TIKIS).forEach(key => { (TIKIS[key] || []).forEach(t => clampTiki(t, key)); renderTikis(key); });
     renderFileList();
   }
   function renderFileList() {
@@ -1275,22 +1296,68 @@
         '<button type="button" class="file-btn file-remove" data-drop-file="' + i + '" aria-label="Remove ' + esc(f.name) + '">Remove</button>' +
       '</div>').join('');
   }
-  function addFiles(list) {
+  /* Big photos get shrunk in the browser so every file fits the 5 MB-per-file upload limit.
+     Prints top out at 12.5" x 24", so 4000 pixels on the long side is still sharp enough to print.
+     PNGs stay PNGs so transparent backgrounds survive. */
+  const FILE_LIMIT = 5 * 1024 * 1024;
+  const PICK_LIMIT = 60 * 1024 * 1024;
+  const SHRINKABLE = /^image\/(png|jpe?g|webp)$/;
+  async function shrinkImage(file) {
+    if (!SHRINKABLE.test(file.type)) return file;
+    let bitmap;
+    try { bitmap = await createImageBitmap(file); } catch (err) { return file; }
+    const longSide = Math.max(bitmap.width, bitmap.height);
+    if (file.size <= FILE_LIMIT && longSide <= 4000) { bitmap.close(); return file; }
+    const render = async (cap, type) => {
+      const k = Math.min(1, cap / longSide);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(bitmap.width * k);
+      canvas.height = Math.round(bitmap.height * k);
+      const g = canvas.getContext('2d');
+      if (type === 'image/jpeg') { g.fillStyle = '#ffffff'; g.fillRect(0, 0, canvas.width, canvas.height); }
+      g.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      return new Promise(res => canvas.toBlob(res, type, 0.9));
+    };
+    const caps = [4000, 3400, 2800, 2200, 1800];
+    let best = null, outType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+    for (const cap of caps) {
+      best = await render(cap, outType);
+      if (best && best.size <= FILE_LIMIT) break;
+    }
+    // A PNG that still won't fit (usually a big photo saved as PNG) becomes a high-quality JPG
+    if ((!best || best.size > FILE_LIMIT) && outType === 'image/png') {
+      outType = 'image/jpeg';
+      for (const cap of caps) {
+        best = await render(cap, outType);
+        if (best && best.size <= FILE_LIMIT) break;
+      }
+    }
+    bitmap.close();
+    if (!best || best.size > FILE_LIMIT) return file;
+    const name = outType === 'image/png' ? file.name : file.name.replace(/\.(png|jpe?g|webp)$/i, '') + '.jpg';
+    return new File([best], name, { type: outType });
+  }
+  async function addFiles(list) {
     const err = document.getElementById('q-file-error');
-    err.hidden = true;
+    const say = msg => { err.textContent = msg; err.hidden = !msg; };
+    say('');
     let added = [...list];
+    const problems = [];
     if (FILES.length + added.length > MAX_FILES) {
       added = added.slice(0, MAX_FILES - FILES.length);
-      err.textContent = 'You can upload up to ' + MAX_FILES + ' files. Email any extras to us after you send.';
-      err.hidden = false;
+      problems.push('You can upload up to ' + MAX_FILES + ' files. Email any extras to us after you send.');
     }
-    const total = [...FILES, ...added].reduce((t, f) => t + f.size, 0);
-    if (total > MAX_BYTES) {
-      err.textContent = 'Those files add up to more than 8 MB. Try smaller pictures, or email big files to us after you send.';
-      err.hidden = false;
-      return;
+    const ready = [];
+    for (const f of added) {
+      if (f.size > PICK_LIMIT) { problems.push(f.name + ' is too big to upload. Please email it to us after you send.'); continue; }
+      say('Getting ' + f.name + ' ready...');
+      const out = await shrinkImage(f);
+      if (out.size > FILE_LIMIT) { problems.push(f.name + ' is over 5 MB and can\'t be shrunk here. Please email it to us after you send.'); continue; }
+      ready.push(out);
     }
-    FILES = [...FILES, ...added];
+    say(problems.join(' '));
+    if (!ready.length) return;
+    FILES = [...FILES, ...ready];
     if (!ART) useArt(FILES.find(isPicture)); else renderFileList();
   }
   const fileInput = document.getElementById('q-files');
@@ -1343,13 +1410,19 @@
         '</g>';
       }).join('');
     });
-    const labels = (TIKIS[key] || []).filter(t => t.view).map(t => tikiLabel(key, t));
+    const placed = (TIKIS[key] || []).filter(t => t.view);
+    const labels = placed.map(t => tikiLabel(key, t));
     placer.querySelectorAll('.spot').forEach(s => s.setAttribute('aria-checked', String(labels.includes(s.dataset.place))));
     form.querySelectorAll('input[name="place-' + key + '"]').forEach(cb => { cb.checked = labels.includes(cb.value); });
     placer.querySelector('.placer-summary').innerHTML = labels.length
-      ? '<b>Your print spots:</b> ' + labels.map(escT).join(' · ')
+      ? '<b>Your print spots:</b> ' + placed.map(t => escT(tikiLabel(key, t)) + ' <span class="spot-size">(' + sizeLabel(key, t) + ')</span>').join(' · ')
       : 'No spots picked yet.';
-    placer.querySelector('.placer-tools').hidden = !(TIKIS[key] || []).some(t => t.id === SELECTED[key]);
+    const picked = (TIKIS[key] || []).find(t => t.id === SELECTED[key] && t.view);
+    placer.querySelector('.placer-tools').hidden = !picked;
+    if (picked) {
+      const atMax = picked.s >= maxS(key) - 0.01;
+      placer.querySelector('.tool-size').textContent = 'Print size ' + sizeLabel(key, picked) + (atMax ? '. That\'s the biggest we print (12.5" x 24").' : '');
+    }
   }
   function addTikiAt(key, spotName) {
     const spot = DIAGRAMS[key].spots[spotName];
@@ -1371,7 +1444,8 @@
     if ((TIKIS[key] || []).some(t => tikiLabel(key, t) === name)) removeTikisAt(key, name);
     else addTikiAt(key, name);
   }
-  const clampTiki = t => {
+  const clampTiki = (t, key) => {
+    if (key) t.s = Math.min(t.s, maxS(key));
     const hw = t.s / 2, hh = t.s * ratio() / 2;
     t.cx = Math.min(72 - hw, Math.max(hw, t.cx));
     t.cy = Math.min(64 - hh, Math.max(hh, t.cy));
@@ -1447,7 +1521,7 @@
     const spot = e.type === 'pointerup' ? dropTarget(svg, drag.rx, drag.ry) : null;
     if (spot) {
       t.view = spot.view; t.cx = spot.cx; t.cy = spot.cy; delete t.name;
-      clampTiki(t);
+      clampTiki(t, key);
       if (t.fresh) { delete t.fresh; (TIKIS[key] = TIKIS[key] || []).push(t); }
       SELECTED[key] = t.id;
     } else if (!drag.tray && e.type === 'pointercancel') {
@@ -1466,9 +1540,9 @@
     const t = findTiki(key, SELECTED[key]);
     if (!t) return;
     if (act === 'remove') { TIKIS[key] = TIKIS[key].filter(x => x !== t); SELECTED[key] = null; }
-    if (act === 'bigger') t.s = Math.min(34, t.s * 1.2);
-    if (act === 'smaller') t.s = Math.max(5, t.s / 1.2);
-    clampTiki(t);
+    if (act === 'bigger') t.s = Math.min(maxS(key), t.s * 1.2);
+    if (act === 'smaller') t.s = Math.max(3, t.s / 1.2);
+    clampTiki(t, key);
     renderTikis(key);
   }
   /* The picture takes the color of the first line in the order */
@@ -1488,7 +1562,7 @@
     const key = g.closest('.placer').id.slice(7);
     const t = findTiki(key, +g.dataset.id);
     const step = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
-    if (step) { e.preventDefault(); t.cx += step[0]; t.cy += step[1]; delete t.name; clampTiki(t); SELECTED[key] = t.id; renderTikis(key); }
+    if (step) { e.preventDefault(); t.cx += step[0]; t.cy += step[1]; delete t.name; clampTiki(t, key); SELECTED[key] = t.id; renderTikis(key); }
     else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); SELECTED[key] = t.id; tool(key, 'remove'); return; }
     else return;
     const again = document.querySelector('#placer-' + key + ' .tiki[data-id="' + t.id + '"]');
@@ -1568,11 +1642,11 @@
       const extra = it.extra ? document.getElementById('extra-' + it.key).value.trim() : '';
       if (extra) lines.push(it.extra.label.replace(' (optional)', '') + ': ' + extra);
       lineList(it).forEach(l => {
-        const what = [l.color || 'Color not picked', [l.fit, l.size].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+        const what = [l.color || 'Color not picked', l.style, [l.fit, l.size].filter(Boolean).join(' ')].filter(Boolean).join(', ');
         lines.push('  - ' + l.qty + ' x ' + what);
       });
       const places = DIAGRAMS[it.key]
-        ? (TIKIS[it.key] || []).map(t => tikiLabel(it.key, t))
+        ? (TIKIS[it.key] || []).filter(t => t.view).map(t => tikiLabel(it.key, t) + ' (' + sizeLabel(it.key, t) + ')')
         : [...form.querySelectorAll('input[name="place-' + it.key + '"]:checked')].map(c => c.value);
       const notes = document.getElementById('notes-' + it.key).value.trim();
       lines.push('Print on: ' + (places.join(', ') || 'not sure yet'));
@@ -1583,7 +1657,27 @@
     if (FILES.length) lines.push('', 'Artwork uploaded: ' + FILES.map(f => f.name).join(', '));
     const text = lines.join('\n');
     document.getElementById('q-text').textContent = text;
-    pending = { name: f.name.trim(), contact: f.contact.trim(), text };
+    const order = {
+      name: f.name.trim(),
+      contact: f.contact.trim(),
+      purpose: f.type,
+      artwork: f.art,
+      items: chosen.map(it => ({
+        product: it.label,
+        total: itemTotal(it),
+        extra: it.extra ? { question: it.extra.label.replace(' (optional)', ''), answer: document.getElementById('extra-' + it.key).value.trim() } : null,
+        lines: lineList(it),
+        placements: DIAGRAMS[it.key]
+          ? (TIKIS[it.key] || []).filter(t => t.view).map(t => ({ spot: tikiLabel(it.key, t), side: t.view, size: sizeLabel(it.key, t) }))
+          : [...form.querySelectorAll('input[name="place-' + it.key + '"]:checked')].map(c => ({ spot: c.value })),
+        method: val('method-' + it.key),
+        material: it.material ? val('material-' + it.key) : '',
+        notes: document.getElementById('notes-' + it.key).value.trim()
+      })),
+      files: FILES.map(file => file.name),
+      text
+    };
+    pending = { name: f.name.trim(), contact: f.contact.trim(), text, order };
     setStatus('');
     busy = false;
     const sendBtn = document.getElementById('q-send');
@@ -1606,11 +1700,13 @@
     copyText(document.getElementById('q-text').textContent, e.currentTarget));
 
   /* ---------- Sending ----------
-     On the live site, Send posts the request (and any uploaded artwork) to Netlify Forms,
-     which emails it to the shop. If that isn't available (preview, or Forms not turned on),
-     Send falls back to opening a Gmail message with the request filled in. */
+     On the live site, Send saves the whole order (details, shirt mockups and artwork files)
+     for the Orders page at /admin/orders, then posts a short Netlify Forms message so the
+     shop gets an email alert. If the order service isn't available, it falls back to sending
+     everything through Netlify Forms, and then to a pre-filled Gmail message. */
   const SHOP_EMAIL = CONTENT.email || 'tikitsllc@gmail.com';
   const CAN_POST = /^https?:$/.test(location.protocol) && !/localhost|127\.0\.0\.1|claude/i.test(location.hostname);
+  const FN = '/.netlify/functions/';
   let pending = null;
   let busy = false;
   const gmailFor = p => 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(SHOP_EMAIL) +
@@ -1624,17 +1720,66 @@
   document.getElementById('q-send-hint').innerHTML = CAN_POST
     ? escT(txt(FORM.sendHint, 'Your request and any artwork you uploaded go straight to Tiki T\'s.'))
     : 'Gmail opens in a new tab with your request filled in. Just hit Send there, and attach any artwork before you send.';
-  async function postQuote(p) {
+
+  /* A picture of each product with the design placed where the customer put it */
+  const readAsDataUrl = blob => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob); });
+  async function mockupBlob(it) {
+    const tikis = (TIKIS[it.key] || []).filter(t => t.view);
+    const type = DIAGRAM_TYPES[it.picture];
+    if (!type || !tikis.length) return null;
+    const first = lineList(it).map(l => colorsFor(it).find(c => c.name === l.color)).find(Boolean);
+    const fill = first ? first.hex : '#ffffff';
+    const artUrl = ART ? await readAsDataUrl(ART.file) : null;
+    const mark = (x, y, w, h) => artUrl
+      ? '<image href="' + artUrl + '" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" preserveAspectRatio="xMidYMid meet"/>'
+      : '<use href="#tiki-mark-m" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '"/>';
+    const paint = s => s.replace(/class="garment"/g, 'fill="' + fill + '" stroke="#141414" stroke-width="1.4" stroke-linejoin="round"');
+    const view = (side, ox) => '<g transform="translate(' + ox + ' 8)">' + paint(type[side]) +
+      tikis.filter(t => t.view === side).map(t => { const w = t.s, h = t.s * ratio(); return mark(t.cx - w / 2, t.cy - h / 2, w, h); }).join('') + '</g>';
+    const label = (x, s) => '<text x="' + x + '" y="81" font-family="Arial, sans-serif" font-size="4.6" font-weight="700" letter-spacing="0.6" fill="#3b3528" text-anchor="middle">' + s + '</text>';
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 164 84" width="1312" height="672">' +
+      '<rect width="164" height="84" fill="#ffffff"/><defs>' + TIKI('m') + '</defs>' +
+      view('front', 4) + view('back', 88) + label(40, 'FRONT') + label(124, 'BACK') + '</svg>';
+    const img = new Image();
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    await img.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = 1312; canvas.height = 672;
+    canvas.getContext('2d').drawImage(img, 0, 0);
+    return new Promise(res => canvas.toBlob(res, 'image/png'));
+  }
+
+  async function postQuote(p, withFiles, orderId) {
     const fd = new FormData();
     fd.append('form-name', 'quote-request');
     fd.append('bot-field', '');
-    fd.append('subject', 'Quote request from ' + p.name);
+    fd.append('subject', 'New quote request from ' + p.name);
     fd.append('name', p.name);
     fd.append('contact', p.contact);
-    fd.append('summary', p.text);
-    FILES.slice(0, 3).forEach((file, i) => fd.append('artwork' + (i + 1), file, file.name));
+    fd.append('summary', p.text + (orderId ? '\n\nSee this order with the shirt mockups and download the artwork:\n' + location.origin + '/admin/orders/' : ''));
+    if (withFiles) FILES.slice(0, 3).forEach((file, i) => fd.append('artwork' + (i + 1), file, file.name));
     const r = await fetch('/', { method: 'POST', body: fd });
     if (!r.ok) throw new Error('Send failed (' + r.status + ')');
+  }
+  async function saveOrder(p, progress) {
+    const r = await fetch(FN + 'order-create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p.order) });
+    if (!r.ok) throw new Error('order service ' + r.status);
+    const { id } = await r.json();
+    const uploads = FILES.map(f => ({ blob: f, name: f.name, kind: 'art' }));
+    for (const it of ITEMS.filter(i => picked().includes(i.key))) {
+      try {
+        const m = await mockupBlob(it);
+        if (m) uploads.push({ blob: m, name: 'mockup-' + it.label.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.png', kind: 'mockup' });
+      } catch (err) { /* a mockup that won't draw shouldn't stop the order */ }
+    }
+    for (let i = 0; i < uploads.length; i++) {
+      const u = uploads[i];
+      progress('Sending your files (' + (i + 1) + ' of ' + uploads.length + ')...');
+      const q = '?id=' + encodeURIComponent(id) + '&kind=' + u.kind + '&name=' + encodeURIComponent(u.name);
+      const up = await fetch(FN + 'order-file' + q, { method: 'POST', headers: { 'Content-Type': u.blob.type || 'application/octet-stream' }, body: u.blob });
+      if (!up.ok) throw new Error('file upload ' + up.status);
+    }
+    return id;
   }
   document.getElementById('q-send').addEventListener('click', async e => {
     if (!pending) { e.preventDefault(); return; }
@@ -1649,9 +1794,17 @@
     busy = true;
     btn.setAttribute('aria-disabled', 'true');
     btn.textContent = 'Sending…';
-    setStatus('');
+    setStatus('Sending your order...', 'info');
     try {
-      await postQuote(pending);
+      let orderId = null;
+      try {
+        orderId = await saveOrder(pending, msg => setStatus(escT(msg), 'info'));
+      } catch (err) { orderId = null; }
+      if (orderId) {
+        try { await postQuote(pending, false, orderId); } catch (err) { /* the order is saved; the email alert is a bonus */ }
+      } else {
+        await postQuote(pending, true, null);
+      }
       btn.textContent = 'Sent!';
       setStatus('<b>Sent!</b> ' + escT(txt(FORM.sentMessage, 'Your quote request is on its way to Tiki T\'s. We\'ll get back to you soon.')), 'ok');
     } catch (err) {
@@ -1663,6 +1816,7 @@
         (FILES.length ? ' and attach your artwork there' : '') + '.', 'error');
     }
   });
+  if (location.hostname === 'localhost') window.__tikiTest = { mockupBlob, ITEMS, TIKIS, lineList };
   document.getElementById('q-send').addEventListener('keydown', e => {
     if ((e.key === ' ' || e.key === 'Enter') && !e.currentTarget.getAttribute('href')) { e.preventDefault(); e.currentTarget.click(); }
   });
