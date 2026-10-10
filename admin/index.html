@@ -5,8 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
   <title>Tiki T's Admin</title>
+  <style>
+    /* Shortcut from the editor to the Orders page */
+    .orders-link {
+      position: fixed; left: 16px; bottom: 16px; z-index: 9999;
+      background: #e0268a; color: #fff; text-decoration: none;
+      font: 800 15px/1 "Segoe UI", system-ui, sans-serif;
+      padding: 12px 18px; border-radius: 999px; border: 2px solid #141414;
+      box-shadow: 3px 3px 0 #141414;
+    }
+    .orders-link:hover { background: #c11a74; }
+  </style>
 </head>
 <body>
+  <a class="orders-link" href="/admin/orders/">See my orders</a>
   <!-- Decap CMS: the editing screen for the site. Settings are in config.yml next to this file. -->
   <script src="https://unpkg.com/decap-cms@^3.1.0/dist/decap-cms.js"></script>
 </body>
