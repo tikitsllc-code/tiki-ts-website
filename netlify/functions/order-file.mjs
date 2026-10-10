@@ -14,7 +14,7 @@ export default async (req) => {
   const name = (url.searchParams.get("name") || "file").replace(/[^\w.\- ]+/g, "_").slice(0, 100) || "file";
   if (!ID_PATTERN.test(id)) return new Response("Bad order id", { status: 400 });
 
-  const orders = getStore("orders");
+  const orders = getStore({ name: "orders", consistency: "strong" });
   const order = await orders.get(id, { type: "json" });
   if (!order) return new Response("Order not found", { status: 404 });
   if (Date.now() - new Date(order.createdAt).getTime() > 60 * 60 * 1000) {
@@ -28,7 +28,7 @@ export default async (req) => {
 
   const type = (req.headers.get("content-type") || "application/octet-stream").slice(0, 100);
   const key = id + "/" + ((order.uploads || []).length + 1) + "-" + name;
-  await getStore("order-files").set(key, body, { metadata: { name, kind, type } });
+  await getStore({ name: "order-files", consistency: "strong" }).set(key, body, { metadata: { name, kind, type } });
 
   order.uploads = [...(order.uploads || []), { key, name, kind, type, size: body.byteLength }];
   await orders.setJSON(id, order);
