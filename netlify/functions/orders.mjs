@@ -41,8 +41,19 @@ export default async (req) => {
       await orders.delete(id);
       return Response.json({ ok: true });
     }
-    if (body.action === "status" && ["new", "done"].includes(body.status)) {
+    if (body.action === "status" && ["new", "quoted", "approved", "declined", "done"].includes(body.status)) {
       order.status = body.status;
+      await orders.setJSON(id, order);
+      return Response.json(order);
+    }
+    // Save the shop's price. The customer gets a private link (with order.key) to say yes or no.
+    if (body.action === "quote") {
+      const price = String(body.price || "").trim().slice(0, 40);
+      if (!price) return new Response("Please add a price", { status: 400 });
+      if (!order.key) order.key = crypto.randomUUID().replace(/-/g, "");
+      order.quote = { price, note: String(body.note || "").trim().slice(0, 1000), sentAt: new Date().toISOString() };
+      order.response = null;
+      order.status = "quoted";
       await orders.setJSON(id, order);
       return Response.json(order);
     }
