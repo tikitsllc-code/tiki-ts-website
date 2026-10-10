@@ -22,7 +22,14 @@
         "Back of neck"
       ],
       "detailsPlaceholder": "What it's for, what goes on the front and back, text, names, colors, the look you want...",
-      "colors": []
+      "colors": [],
+      "styles": [
+        "Round neck",
+        "V-neck",
+        "Polo",
+        "Long sleeve",
+        "Tank top"
+      ]
     },
     {
       "name": "Hoodies or jackets",
