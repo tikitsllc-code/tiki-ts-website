@@ -69,6 +69,8 @@
   .pill.approved { background: #d9f0d6; color: var(--green); }
   .pill.declined { background: #eee; color: #666; }
   .pill.done { background: var(--ink); color: #fff; }
+  .pill.paid { background: var(--green); color: #fff; }
+  .price-box.paid { background: #e3f5e0; border-color: var(--green); border-width: 3px; }
   .head-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
   .btn {
     display: inline-flex; align-items: center; gap: 6px; text-decoration: none; cursor: pointer;
@@ -153,11 +155,12 @@
 </header>
 
 <main class="wrap">
-  <p class="steps-help"><b>How it works:</b> a quote comes in under <b>New</b> → you add a price and send it → when they say yes it moves to <b>Approved</b> → make it, then mark it <b>Done</b>.</p>
+  <p class="steps-help"><b>How it works:</b> a quote comes in under <b>New</b> → you add a price and send it → they say yes and pay by card → it shows up under <b>Paid</b> → print it, then mark it <b>Done</b>.</p>
   <div class="tabs" role="group" aria-label="Show orders">
     <button class="tab" type="button" data-show="new" aria-pressed="true">New <span class="count" id="count-new"></span></button>
     <button class="tab" type="button" data-show="quoted" aria-pressed="false">Price sent <span class="count" id="count-quoted"></span></button>
-    <button class="tab" type="button" data-show="approved" aria-pressed="false">Approved <span class="count" id="count-approved"></span></button>
+    <button class="tab" type="button" data-show="approved" aria-pressed="false">Said yes <span class="count" id="count-approved"></span></button>
+    <button class="tab" type="button" data-show="paid" aria-pressed="false">Paid, ready to print <span class="count" id="count-paid"></span></button>
     <button class="tab" type="button" data-show="declined" aria-pressed="false">Declined</button>
     <button class="tab" type="button" data-show="done" aria-pressed="false">Done</button>
     <button class="tab" type="button" data-show="all" aria-pressed="false">All</button>
@@ -168,7 +171,7 @@
 
 <script>
   const FN = '/.netlify/functions/';
-  const STATUS = { new: 'New', quoted: 'Price sent', approved: 'Approved', declined: 'Declined', done: 'Done' };
+  const STATUS = { new: 'New', quoted: 'Price sent', approved: 'Said yes', paid: 'Paid', declined: 'Declined', done: 'Done' };
   let ORDERS = [];
   let SHOW = 'new';
   const editing = new Set();
@@ -217,7 +220,7 @@
   const priceMessage = o =>
     'Hi ' + firstName(o.name) + '! Thanks for your quote request with Tiki T\'s.\n\n' +
     'Your price is ' + o.quote.price + '.' + (o.quote.note ? '\n' + o.quote.note : '') + '\n\n' +
-    'See your order and let us know if you want to go ahead:\n' + quoteLink(o) + '\n\n' +
+    'See your order and pay to get started here:\n' + quoteLink(o) + '\n\n' +
     'Nothing gets printed until you say yes. Thanks!\nTiki T\'s';
 
   function priceHtml(o) {
@@ -226,7 +229,7 @@
     if (!q || editing.has(o.id)) {
       return '<div class="price-box"><h3>Send them a price</h3>' +
         '<div class="price-form">' +
-          '<div><label for="price-' + o.id + '">Price</label><input id="price-' + o.id + '" data-price placeholder="$45" value="' + esc(q ? q.price : '') + '"></div>' +
+          '<div><label for="price-' + o.id + '">Price ($)</label><input id="price-' + o.id + '" data-price inputmode="decimal" placeholder="45.00" value="' + esc(q ? (q.amountCents ? (q.amountCents / 100).toFixed(2) : q.price) : '') + '"></div>' +
           '<div><label for="note-' + o.id + '">Note for them (optional)</label><textarea id="note-' + o.id + '" data-note placeholder="Includes front and back print. Ready in about a week.">' + esc(q ? q.note : '') + '</textarea></div>' +
         '</div>' +
         '<div class="send-row"><button type="button" class="btn pink" data-save-price>Save price</button>' + (q ? '<button type="button" class="btn" data-cancel-edit>Cancel</button>' : '') + '</div>' +
@@ -239,13 +242,19 @@
       (phone ? '<a class="btn pink" href="sms:' + phone + '?&body=' + encodeURIComponent(msg) + '">Text it</a>' : '') +
       '<button type="button" class="btn" data-copy-msg>Copy message</button>' +
       '<button type="button" class="btn" data-copy-link>Copy link only</button>';
+    if (o.paid) {
+      return '<div class="price-box paid"><h3>💳 PAID ' + esc('$' + (o.paid.amountCents / 100).toFixed(2)) + '. Ready to print!</h3>' +
+        '<p class="hint">Paid ' + esc(fmtDate(o.paid.at)) + ' by card. The money goes to your Stripe account.</p>' +
+        (o.response && o.response.message ? '<p class="their-msg">"' + esc(o.response.message) + '"</p>' : '') +
+        '<p class="hint">When it\'s finished, click <b>Mark as done</b>.</p></div>';
+    }
     if (st === 'approved' || st === 'declined' || (o.response && st === 'done')) {
       const yes = o.response && o.response.answer === 'accept';
       return '<div class="price-box ' + (yes ? 'approved' : 'declined') + '">' +
         '<h3>' + (yes ? '✅ ' + esc(o.name) + ' said YES to ' : '❌ ' + esc(o.name) + ' said no thanks to ') + esc(q.price) + '</h3>' +
         (o.response && o.response.at ? '<p class="hint">Answered ' + esc(fmtDate(o.response.at)) + '</p>' : '') +
         (o.response && o.response.message ? '<p class="their-msg">"' + esc(o.response.message) + '"</p>' : '') +
-        (yes ? '<p class="hint">Go ahead and make it. When it\'s finished, click <b>Mark as done</b>.</p>' : '') +
+        (yes ? (o.payment ? '<p class="hint">They went to the payment page but haven\'t finished paying yet. Don\'t print until it moves to <b>Paid</b>.</p>' : '<p class="hint">Waiting for their payment. Don\'t print until it moves to <b>Paid</b>.</p>') : '') +
         '</div>';
     }
     return '<div class="price-box"><h3>Price sent: <span class="price-big">' + esc(q.price) + '</span></h3>' +
@@ -285,8 +294,8 @@
     const mockups = (o.uploads || []).filter(u => u.kind === 'mockup');
     const art = (o.uploads || []).filter(u => u.kind !== 'mockup');
     const mainAction = st === 'done'
-      ? '<button type="button" class="btn" data-status="' + (o.response && o.response.answer === 'accept' ? 'approved' : o.quote ? 'quoted' : 'new') + '">Move back</button>'
-      : '<button type="button" class="btn' + (st === 'approved' ? ' primary' : '') + '" data-status="done">Mark as done</button>';
+      ? '<button type="button" class="btn" data-status="' + (o.paid ? 'paid' : o.response && o.response.answer === 'accept' ? 'approved' : o.quote ? 'quoted' : 'new') + '">Move back</button>'
+      : '<button type="button" class="btn' + (st === 'paid' ? ' primary' : '') + '" data-status="done">Mark as done</button>';
     return '<article class="order" data-id="' + esc(o.id) + '">' +
       '<div class="order-head">' +
         '<span class="who">' + esc(o.name) + '</span>' +
@@ -311,7 +320,7 @@
   }
 
   function render() {
-    ['new', 'quoted', 'approved'].forEach(s => {
+    ['new', 'quoted', 'approved', 'paid'].forEach(s => {
       const n = ORDERS.filter(o => statusOf(o) === s).length;
       const el = document.getElementById('count-' + s);
       el.textContent = n || '';
@@ -319,7 +328,7 @@
     });
     const list = ORDERS.filter(o => SHOW === 'all' || statusOf(o) === SHOW);
     const box = document.getElementById('orders');
-    const emptyText = { new: 'No new orders right now.', quoted: 'No prices waiting on an answer.', approved: 'Nothing approved and waiting to be made.', declined: 'No declined orders.', done: 'Nothing finished yet.', all: 'No orders yet.' };
+    const emptyText = { new: 'No new orders right now.', quoted: 'No prices waiting on an answer.', approved: 'Nobody is waiting to pay right now.', paid: 'Nothing paid and waiting to print.', declined: 'No declined orders.', done: 'Nothing finished yet.', all: 'No orders yet.' };
     box.innerHTML = list.length ? list.map(orderHtml).join('') : '<p class="empty">' + emptyText[SHOW] + '</p>';
     box.querySelectorAll('img[data-key]').forEach(loadImage);
   }
@@ -379,9 +388,9 @@
       const note = card.querySelector('[data-note]').value.trim();
       if (!price) { card.querySelector('[data-price]').focus(); return; }
       btn.disabled = true; btn.textContent = 'Saving...';
-      const res = await post({ id, action: 'quote', price: /^\d/.test(price) ? '$' + price : price, note });
+      const res = await post({ id, action: 'quote', price, note });
       if (res.ok) { replaceOrder(await res.json()); editing.delete(id); render(); }
-      else { btn.disabled = false; btn.textContent = 'Save price'; }
+      else { btn.disabled = false; btn.textContent = 'Save price'; alert(await res.text()); }
       return;
     }
     if (e.target.closest('[data-edit-price]')) { editing.add(id); render(); return; }
