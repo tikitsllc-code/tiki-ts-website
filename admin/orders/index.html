@@ -20,12 +20,13 @@
     --teal: #1aa6a6;
     --sun: #f5d629;
     --green: #2f8f2c;
+    --orange: #c46a00;
   }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16px/1.5 "Figtree", "Segoe UI", system-ui, sans-serif; }
   a { color: inherit; }
-  button { font: inherit; }
+  button, input, textarea { font: inherit; }
   :focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
 
   .bar { background: var(--ink); color: #fff; position: sticky; top: 0; z-index: 5; }
@@ -43,33 +44,31 @@
   .wrap { max-width: 1000px; margin-inline: auto; padding-inline: 16px; }
   main.wrap { padding-block: 24px 60px; }
 
+  .steps-help { margin: 0 0 16px; color: var(--soft); font-size: 0.95rem; }
   .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
   .tab {
     background: var(--paper); border: 2px solid var(--ink); border-radius: 999px;
-    padding: 8px 16px; font-weight: 800; cursor: pointer;
+    padding: 8px 14px; font-weight: 800; cursor: pointer;
   }
   .tab[aria-pressed="true"] { background: var(--ink); color: var(--sun); }
-  .tab .count { display: inline-block; min-width: 1.6em; margin-left: 4px; padding: 0 6px; border-radius: 999px; background: var(--pink); color: #fff; font-size: 0.8rem; }
+  .tab .count { display: inline-block; min-width: 1.6em; margin-left: 4px; padding: 0 6px; border-radius: 999px; background: var(--pink); color: #fff; font-size: 0.8rem; text-align: center; }
+  .tab .count:empty, .tab .count.zero { display: none; }
 
   .notice { background: var(--paper); border: 2px solid var(--ink); border-radius: 14px; padding: 20px; }
   .notice h2 { margin: 0 0 6px; font-size: 1.2rem; }
   .notice p { margin: 0; color: var(--soft); }
   .notice a.btn { margin-top: 14px; }
 
-  .order {
-    background: var(--paper); border: 2px solid var(--ink); border-radius: 16px;
-    margin-bottom: 18px; overflow: hidden;
-  }
-  .order.is-done { opacity: 0.75; }
-  .order-head {
-    display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center;
-    padding: 14px 18px; border-bottom: 2px solid var(--line);
-  }
+  .order { background: var(--paper); border: 2px solid var(--ink); border-radius: 16px; margin-bottom: 18px; overflow: hidden; }
+  .order-head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; padding: 14px 18px; border-bottom: 2px solid var(--line); }
   .who { font-size: 1.25rem; font-weight: 900; }
   .when { color: var(--soft); font-size: 0.9rem; }
   .pill { font-weight: 800; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; }
   .pill.new { background: var(--pink); color: #fff; }
-  .pill.done { background: #d9f0d6; color: var(--green); }
+  .pill.quoted { background: #fff1c2; color: var(--orange); }
+  .pill.approved { background: #d9f0d6; color: var(--green); }
+  .pill.declined { background: #eee; color: #666; }
+  .pill.done { background: var(--ink); color: #fff; }
   .head-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
   .btn {
     display: inline-flex; align-items: center; gap: 6px; text-decoration: none; cursor: pointer;
@@ -79,13 +78,31 @@
   .btn:hover { background: var(--sun); }
   .btn.primary { background: var(--ink); color: #fff; }
   .btn.primary:hover { background: #333; }
+  .btn.pink { background: var(--pink); color: #fff; }
+  .btn.pink:hover { background: #c11a74; }
   .btn.danger { border-color: var(--pink); color: var(--pink); }
   .btn.danger:hover { background: var(--pink); color: #fff; }
+  .btn:disabled { opacity: 0.6; cursor: default; }
 
   .order-body { padding: 16px 18px 20px; display: grid; gap: 18px; }
   .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 20px; }
-  .fact small { display: block; color: var(--soft); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+  .fact small, .section-label { display: block; color: var(--soft); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+  .section-label { margin: 0 0 8px; }
   .fact span { font-weight: 600; overflow-wrap: anywhere; }
+
+  /* Price box: the main thing to do on a new order */
+  .price-box { border: 2px solid var(--ink); border-radius: 14px; padding: 14px 16px; background: #fffaf0; display: grid; gap: 10px; }
+  .price-box.approved { background: #eef8ec; border-color: var(--green); }
+  .price-box.declined { background: #f4f4f4; border-color: #999; }
+  .price-box h3 { margin: 0; font-size: 1.05rem; }
+  .price-form { display: grid; grid-template-columns: 180px 1fr; gap: 10px; align-items: start; }
+  .price-form label { font-weight: 800; font-size: 0.9rem; display: block; margin-bottom: 4px; }
+  .price-form input, .price-form textarea { width: 100%; border: 2px solid var(--ink); border-radius: 10px; padding: 9px 10px; background: #fff; }
+  .price-form textarea { min-height: 44px; resize: vertical; }
+  .price-big { font: 400 2rem/1 "Permanent Marker", cursive; color: var(--pink); }
+  .send-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .hint { margin: 0; font-size: 0.86rem; color: var(--soft); }
+  .their-msg { margin: 0; padding: 8px 10px; background: #fff; border-radius: 8px; border: 1px solid var(--line); white-space: pre-wrap; }
 
   .item { border: 2px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 12px; }
   .item h3 { margin: 0; font-size: 1.1rem; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
@@ -100,11 +117,10 @@
   .kv dd { margin: 0; }
   .kv ul { margin: 0; padding-left: 18px; }
 
+  .files-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .files-head .section-label { margin: 0; }
   .gallery { display: flex; gap: 12px; flex-wrap: wrap; }
-  .file {
-    width: 220px; max-width: 100%; border: 2px solid var(--line); border-radius: 12px; overflow: hidden;
-    display: flex; flex-direction: column; background: #fff;
-  }
+  .file { width: 220px; max-width: 100%; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; background: #fff; }
   .file.mockup { width: 340px; }
   .file .thumb { aspect-ratio: 4 / 3; background: repeating-conic-gradient(#f1ede3 0 25%, #fff 0 50%) 0 0 / 16px 16px; display: grid; place-items: center; }
   .file.mockup .thumb { aspect-ratio: 1312 / 672; background: #fff; }
@@ -112,16 +128,15 @@
   .file .thumb .ext { font-weight: 900; color: var(--soft); }
   .file .meta { padding: 8px 10px; display: flex; gap: 8px; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); }
   .file .meta span { font-size: 0.82rem; overflow-wrap: anywhere; }
-  .section-label { margin: 0 0 8px; font-size: 0.78rem; color: var(--soft); font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
 
   details.full summary { cursor: pointer; font-weight: 800; color: var(--soft); }
   details.full pre { white-space: pre-wrap; font: 400 0.9rem/1.5 "Figtree", sans-serif; background: var(--bg); padding: 12px; border-radius: 10px; margin: 8px 0 0; }
-
   .confirm { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-weight: 800; color: var(--pink); }
   .empty { text-align: center; color: var(--soft); padding: 40px 0; }
-  @media (max-width: 560px) {
+  @media (max-width: 600px) {
     .head-actions { margin-left: 0; width: 100%; }
     .file, .file.mockup { width: 100%; }
+    .price-form { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -138,8 +153,12 @@
 </header>
 
 <main class="wrap">
+  <p class="steps-help"><b>How it works:</b> a quote comes in under <b>New</b> → you add a price and send it → when they say yes it moves to <b>Approved</b> → make it, then mark it <b>Done</b>.</p>
   <div class="tabs" role="group" aria-label="Show orders">
-    <button class="tab" type="button" data-show="new" aria-pressed="true">New <span class="count" id="count-new">0</span></button>
+    <button class="tab" type="button" data-show="new" aria-pressed="true">New <span class="count" id="count-new"></span></button>
+    <button class="tab" type="button" data-show="quoted" aria-pressed="false">Price sent <span class="count" id="count-quoted"></span></button>
+    <button class="tab" type="button" data-show="approved" aria-pressed="false">Approved <span class="count" id="count-approved"></span></button>
+    <button class="tab" type="button" data-show="declined" aria-pressed="false">Declined</button>
     <button class="tab" type="button" data-show="done" aria-pressed="false">Done</button>
     <button class="tab" type="button" data-show="all" aria-pressed="false">All</button>
   </div>
@@ -149,11 +168,14 @@
 
 <script>
   const FN = '/.netlify/functions/';
+  const STATUS = { new: 'New', quoted: 'Price sent', approved: 'Approved', declined: 'Declined', done: 'Done' };
   let ORDERS = [];
   let SHOW = 'new';
+  const editing = new Set();
   const blobUrls = new Map();
 
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const statusOf = o => STATUS[o.status] ? o.status : 'new';
   // The admin keeps the GitHub login in this browser after you sign in at /admin
   function token() {
     for (const k of ['decap-cms-user', 'netlify-cms-user']) {
@@ -162,6 +184,7 @@
     return null;
   }
   const authed = (path, opts = {}) => fetch(FN + path, { ...opts, headers: { ...(opts.headers || {}), Authorization: 'Bearer ' + token() } });
+  const post = body => authed('orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 
   function showMessage(title, text, link) {
     const m = document.getElementById('message');
@@ -179,22 +202,58 @@
     document.getElementById('orders').innerHTML = '<p class="empty">Loading orders...</p>';
     let res;
     try { res = await authed('orders'); } catch (e) { res = null; }
-    if (!res || res.status === 404) {
-      showMessage('Orders aren\'t set up yet', 'The order system isn\'t running on this site yet. Once it\'s published, new quote requests will show up here.');
-      return;
-    }
-    if (res.status === 401) {
-      showMessage('Log in again', 'Your admin login has expired. Open the admin, log in with GitHub, then come back.', { href: '/admin/', label: 'Go to the admin' });
-      return;
-    }
+    if (!res || res.status === 404) { showMessage('Orders aren\'t set up yet', 'The order system isn\'t running on this site yet.'); return; }
+    if (res.status === 401) { showMessage('Log in again', 'Your admin login has expired. Open the admin, log in with GitHub, then come back.', { href: '/admin/', label: 'Go to the admin' }); return; }
     if (!res.ok) { showMessage('Couldn\'t load orders', 'Something went wrong. Try Refresh in a minute.'); return; }
     ORDERS = await res.json();
     render();
   }
 
-  function fmtDate(iso) {
-    const d = new Date(iso);
-    return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) + ' at ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  const fmtDate = iso => { const d = new Date(iso); return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) + ' at ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }); };
+  const firstName = n => String(n || '').trim().split(/\s+/)[0] || 'there';
+  const emailIn = s => (String(s || '').match(/[^\s@]+@[^\s@]+\.[^\s@]+/) || [])[0] || '';
+  const phoneIn = s => { const d = String(s || '').replace(/\D/g, ''); return d.length === 10 ? '+1' + d : d.length === 11 && d[0] === '1' ? '+' + d : ''; };
+  const quoteLink = o => location.origin + '/quote/?id=' + encodeURIComponent(o.id) + '&k=' + encodeURIComponent(o.key || '');
+  const priceMessage = o =>
+    'Hi ' + firstName(o.name) + '! Thanks for your quote request with Tiki T\'s.\n\n' +
+    'Your price is ' + o.quote.price + '.' + (o.quote.note ? '\n' + o.quote.note : '') + '\n\n' +
+    'See your order and let us know if you want to go ahead:\n' + quoteLink(o) + '\n\n' +
+    'Nothing gets printed until you say yes. Thanks!\nTiki T\'s';
+
+  function priceHtml(o) {
+    const st = statusOf(o);
+    const q = o.quote;
+    if (!q || editing.has(o.id)) {
+      return '<div class="price-box"><h3>Send them a price</h3>' +
+        '<div class="price-form">' +
+          '<div><label for="price-' + o.id + '">Price</label><input id="price-' + o.id + '" data-price placeholder="$45" value="' + esc(q ? q.price : '') + '"></div>' +
+          '<div><label for="note-' + o.id + '">Note for them (optional)</label><textarea id="note-' + o.id + '" data-note placeholder="Includes front and back print. Ready in about a week.">' + esc(q ? q.note : '') + '</textarea></div>' +
+        '</div>' +
+        '<div class="send-row"><button type="button" class="btn pink" data-save-price>Save price</button>' + (q ? '<button type="button" class="btn" data-cancel-edit>Cancel</button>' : '') + '</div>' +
+        '<p class="hint">After you save, you\'ll get buttons to email or text it to them. They tap a link to say yes or no.</p></div>';
+    }
+    const email = emailIn(o.contact), phone = phoneIn(o.contact);
+    const msg = priceMessage(o);
+    const sendButtons =
+      (email ? '<a class="btn pink" target="_blank" rel="noopener" href="https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(email) + '&su=' + encodeURIComponent('Your Tiki T\'s quote') + '&body=' + encodeURIComponent(msg) + '">Email it (Gmail)</a>' : '') +
+      (phone ? '<a class="btn pink" href="sms:' + phone + '?&body=' + encodeURIComponent(msg) + '">Text it</a>' : '') +
+      '<button type="button" class="btn" data-copy-msg>Copy message</button>' +
+      '<button type="button" class="btn" data-copy-link>Copy link only</button>';
+    if (st === 'approved' || st === 'declined' || (o.response && st === 'done')) {
+      const yes = o.response && o.response.answer === 'accept';
+      return '<div class="price-box ' + (yes ? 'approved' : 'declined') + '">' +
+        '<h3>' + (yes ? '✅ ' + esc(o.name) + ' said YES to ' : '❌ ' + esc(o.name) + ' said no thanks to ') + esc(q.price) + '</h3>' +
+        (o.response && o.response.at ? '<p class="hint">Answered ' + esc(fmtDate(o.response.at)) + '</p>' : '') +
+        (o.response && o.response.message ? '<p class="their-msg">"' + esc(o.response.message) + '"</p>' : '') +
+        (yes ? '<p class="hint">Go ahead and make it. When it\'s finished, click <b>Mark as done</b>.</p>' : '') +
+        '</div>';
+    }
+    return '<div class="price-box"><h3>Price sent: <span class="price-big">' + esc(q.price) + '</span></h3>' +
+      (q.note ? '<p class="hint">Note: ' + esc(q.note) + '</p>' : '') +
+      '<p class="hint">Saved ' + esc(fmtDate(q.sentAt)) + '. Waiting for their answer. Haven\'t sent it yet? Use a button below.</p>' +
+      '<div class="send-row">' + sendButtons + '<button type="button" class="btn" data-edit-price>Change price</button></div>' +
+      (!email && !phone ? '<p class="hint">Their contact info didn\'t look like an email or phone number, so copy the message and send it however you reach them.</p>' : '') +
+      '</div>';
   }
 
   function itemHtml(it) {
@@ -222,18 +281,18 @@
   }
 
   function orderHtml(o) {
+    const st = statusOf(o);
     const mockups = (o.uploads || []).filter(u => u.kind === 'mockup');
     const art = (o.uploads || []).filter(u => u.kind !== 'mockup');
-    const done = o.status === 'done';
-    return '<article class="order' + (done ? ' is-done' : '') + '" data-id="' + esc(o.id) + '">' +
+    const mainAction = st === 'done'
+      ? '<button type="button" class="btn" data-status="' + (o.response && o.response.answer === 'accept' ? 'approved' : o.quote ? 'quoted' : 'new') + '">Move back</button>'
+      : '<button type="button" class="btn' + (st === 'approved' ? ' primary' : '') + '" data-status="done">Mark as done</button>';
+    return '<article class="order" data-id="' + esc(o.id) + '">' +
       '<div class="order-head">' +
         '<span class="who">' + esc(o.name) + '</span>' +
-        '<span class="pill ' + (done ? 'done' : 'new') + '">' + (done ? 'Done' : 'New') + '</span>' +
+        '<span class="pill ' + st + '">' + STATUS[st] + '</span>' +
         '<span class="when">' + esc(fmtDate(o.createdAt)) + '</span>' +
-        '<div class="head-actions">' +
-          '<button type="button" class="btn" data-status="' + (done ? 'new' : 'done') + '">' + (done ? 'Move back to New' : 'Mark as done') + '</button>' +
-          '<button type="button" class="btn danger" data-delete>Delete</button>' +
-        '</div>' +
+        '<div class="head-actions">' + mainAction + '<button type="button" class="btn danger" data-delete>Delete</button></div>' +
       '</div>' +
       '<div class="order-body">' +
         '<div class="facts">' +
@@ -241,20 +300,27 @@
           '<div class="fact"><small>What it\'s for</small><span>' + esc(o.purpose || '-') + '</span></div>' +
           '<div class="fact"><small>Artwork</small><span>' + esc(o.artwork || '-') + '</span></div>' +
         '</div>' +
+        priceHtml(o) +
         (o.items || []).map(itemHtml).join('') +
         (mockups.length ? '<div><p class="section-label">Where they put the design</p><div class="gallery">' + mockups.map(fileHtml).join('') + '</div></div>' : '') +
-        (art.length ? '<div><p class="section-label">Their files (ready to print)</p><div class="gallery">' + art.map(fileHtml).join('') + '</div></div>' : '') +
+        (art.length ? '<div><div class="files-head"><p class="section-label">Their files (ready to print)</p>' +
+          (art.length > 1 ? '<button type="button" class="btn primary" data-download-all>Download all files</button>' : '') +
+          '</div><div class="gallery">' + art.map(fileHtml).join('') + '</div></div>' : '') +
         (o.text ? '<details class="full"><summary>Show the full message</summary><pre>' + esc(o.text) + '</pre></details>' : '') +
       '</div></article>';
   }
 
   function render() {
-    const counts = { new: ORDERS.filter(o => o.status !== 'done').length };
-    document.getElementById('count-new').textContent = counts.new;
-    const list = ORDERS.filter(o => SHOW === 'all' || (SHOW === 'done' ? o.status === 'done' : o.status !== 'done'));
+    ['new', 'quoted', 'approved'].forEach(s => {
+      const n = ORDERS.filter(o => statusOf(o) === s).length;
+      const el = document.getElementById('count-' + s);
+      el.textContent = n || '';
+      el.classList.toggle('zero', !n);
+    });
+    const list = ORDERS.filter(o => SHOW === 'all' || statusOf(o) === SHOW);
     const box = document.getElementById('orders');
-    box.innerHTML = list.length ? list.map(orderHtml).join('')
-      : '<p class="empty">' + (SHOW === 'new' ? 'No new orders right now.' : 'Nothing here yet.') + '</p>';
+    const emptyText = { new: 'No new orders right now.', quoted: 'No prices waiting on an answer.', approved: 'Nothing approved and waiting to be made.', declined: 'No declined orders.', done: 'Nothing finished yet.', all: 'No orders yet.' };
+    box.innerHTML = list.length ? list.map(orderHtml).join('') : '<p class="empty">' + emptyText[SHOW] + '</p>';
     box.querySelectorAll('img[data-key]').forEach(loadImage);
   }
 
@@ -269,41 +335,75 @@
   async function loadImage(img) {
     try { img.src = await fileBlob(img.dataset.key); } catch (e) { img.replaceWith(Object.assign(document.createElement('span'), { className: 'ext', textContent: 'Can\'t show' })); }
   }
+  async function download(key, name) {
+    const a = document.createElement('a');
+    a.href = await fileBlob(key);
+    a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+  async function copy(text, btn) {
+    const label = btn.textContent;
+    try { await navigator.clipboard.writeText(text); btn.textContent = 'Copied!'; }
+    catch (e) { window.prompt('Copy this:', text); }
+    setTimeout(() => { btn.textContent = label; }, 1500);
+  }
+  const replaceOrder = updated => { ORDERS = ORDERS.map(o => o.id === updated.id ? updated : o); };
 
   document.getElementById('orders').addEventListener('click', async e => {
     const card = e.target.closest('.order');
     if (!card) return;
     const id = card.dataset.id;
+    const order = ORDERS.find(o => o.id === id);
     const dl = e.target.closest('[data-download]');
     if (dl) {
       dl.textContent = 'Getting it...';
-      try {
-        const a = document.createElement('a');
-        a.href = await fileBlob(dl.dataset.download);
-        a.download = dl.dataset.name;
-        document.body.appendChild(a); a.click(); a.remove();
-        dl.textContent = 'Download';
-      } catch (err) { dl.textContent = 'Try again'; }
+      try { await download(dl.dataset.download, dl.dataset.name); dl.textContent = 'Download'; } catch (err) { dl.textContent = 'Try again'; }
       return;
     }
+    const all = e.target.closest('[data-download-all]');
+    if (all) {
+      all.disabled = true;
+      const files = (order.uploads || []).filter(u => u.kind !== 'mockup');
+      for (let i = 0; i < files.length; i++) {
+        all.textContent = 'Downloading ' + (i + 1) + ' of ' + files.length + '...';
+        try { await download(files[i].key, files[i].name); } catch (err) { /* keep going */ }
+        await new Promise(r => setTimeout(r, 400));
+      }
+      all.textContent = 'Download all files';
+      all.disabled = false;
+      return;
+    }
+    if (e.target.closest('[data-save-price]')) {
+      const btn = e.target.closest('[data-save-price]');
+      const price = card.querySelector('[data-price]').value.trim();
+      const note = card.querySelector('[data-note]').value.trim();
+      if (!price) { card.querySelector('[data-price]').focus(); return; }
+      btn.disabled = true; btn.textContent = 'Saving...';
+      const res = await post({ id, action: 'quote', price: /^\d/.test(price) ? '$' + price : price, note });
+      if (res.ok) { replaceOrder(await res.json()); editing.delete(id); render(); }
+      else { btn.disabled = false; btn.textContent = 'Save price'; }
+      return;
+    }
+    if (e.target.closest('[data-edit-price]')) { editing.add(id); render(); return; }
+    if (e.target.closest('[data-cancel-edit]')) { editing.delete(id); render(); return; }
+    if (e.target.closest('[data-copy-msg]')) { copy(priceMessage(order), e.target.closest('[data-copy-msg]')); return; }
+    if (e.target.closest('[data-copy-link]')) { copy(quoteLink(order), e.target.closest('[data-copy-link]')); return; }
     const st = e.target.closest('[data-status]');
     if (st) {
       st.disabled = true;
-      const res = await authed('orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, action: 'status', status: st.dataset.status }) });
-      if (res.ok) { const updated = await res.json(); ORDERS = ORDERS.map(o => o.id === id ? updated : o); render(); }
-      else st.disabled = false;
+      const res = await post({ id, action: 'status', status: st.dataset.status });
+      if (res.ok) { replaceOrder(await res.json()); render(); } else st.disabled = false;
       return;
     }
     if (e.target.closest('[data-delete]')) {
-      const actions = card.querySelector('.head-actions');
-      actions.innerHTML = '<span class="confirm">Delete this order and its files for good? ' +
+      card.querySelector('.head-actions').innerHTML = '<span class="confirm">Delete this order and its files for good? ' +
         '<button type="button" class="btn danger" data-confirm-delete>Yes, delete</button>' +
         '<button type="button" class="btn" data-cancel>Keep it</button></span>';
       return;
     }
     if (e.target.closest('[data-cancel]')) { render(); return; }
     if (e.target.closest('[data-confirm-delete]')) {
-      const res = await authed('orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, action: 'delete' }) });
+      const res = await post({ id, action: 'delete' });
       if (res.ok) { ORDERS = ORDERS.filter(o => o.id !== id); render(); }
     }
   });
