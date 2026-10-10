@@ -1,0 +1,7 @@
+# The website files are in the main folder. The order system lives in netlify/functions.
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
