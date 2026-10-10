@@ -1,6 +1,7 @@
 // The admin Orders page talks to this. Only someone logged in to the admin with GitHub
 // (and allowed to edit the website's repository) can see, update or delete orders.
 import { getStore } from "@netlify/blobs";
+import { syncPayment } from "../lib/stripe.mjs";
 
 const REPO = "tikitsllc-code/tiki-ts-website";
 const ID_PATTERN = /^\d{14}-[a-z0-9]{6}$/;
@@ -23,6 +24,10 @@ export default async (req) => {
   if (req.method === "GET") {
     const { blobs } = await orders.list();
     const all = (await Promise.all(blobs.map((b) => orders.get(b.key, { type: "json" })))).filter(Boolean);
+    // Catch any card payments that finished since the last look
+    await Promise.all(all.map(async (o) => {
+      try { if (await syncPayment(o)) await orders.setJSON(o.id, o); } catch (err) { /* try again next time */ }
+    }));
     all.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
     return Response.json(all);
   }
@@ -41,18 +46,21 @@ export default async (req) => {
       await orders.delete(id);
       return Response.json({ ok: true });
     }
-    if (body.action === "status" && ["new", "quoted", "approved", "declined", "done"].includes(body.status)) {
+    if (body.action === "status" && ["new", "quoted", "approved", "paid", "declined", "done"].includes(body.status)) {
       order.status = body.status;
       await orders.setJSON(id, order);
       return Response.json(order);
     }
     // Save the shop's price. The customer gets a private link (with order.key) to say yes or no.
     if (body.action === "quote") {
-      const price = String(body.price || "").trim().slice(0, 40);
-      if (!price) return new Response("Please add a price", { status: 400 });
+      const amount = parseFloat(String(body.price || "").replace(/[^0-9.]/g, ""));
+      if (!(amount > 0) || amount > 100000) return new Response("Please type the price as a number, like 45 or 45.50", { status: 400 });
+      const amountCents = Math.round(amount * 100);
+      const price = "$" + (amountCents / 100).toFixed(2);
       if (!order.key) order.key = crypto.randomUUID().replace(/-/g, "");
-      order.quote = { price, note: String(body.note || "").trim().slice(0, 1000), sentAt: new Date().toISOString() };
+      order.quote = { price, amountCents, note: String(body.note || "").trim().slice(0, 1000), sentAt: new Date().toISOString() };
       order.response = null;
+      order.payment = null;
       order.status = "quoted";
       await orders.setJSON(id, order);
       return Response.json(order);
