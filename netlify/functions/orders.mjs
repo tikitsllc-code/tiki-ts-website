@@ -5,6 +5,7 @@ import { syncPayment } from "../lib/stripe.mjs";
 
 const REPO = "tikitsllc-code/tiki-ts-website";
 const ID_PATTERN = /^\d{14}-[a-z0-9]{6}$/;
+const TAX_RATE = 0.065; // Florida 6% + Volusia County 0.5%
 
 async function isShopOwner(req) {
   const token = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
@@ -55,10 +56,14 @@ export default async (req) => {
     if (body.action === "quote") {
       const amount = parseFloat(String(body.price || "").replace(/[^0-9.]/g, ""));
       if (!(amount > 0) || amount > 100000) return new Response("Please type the price as a number, like 45 or 45.50", { status: 400 });
-      const amountCents = Math.round(amount * 100);
+      // The shop types the price before tax; Florida sales tax is added on top unless they untick it
+      const subtotalCents = Math.round(amount * 100);
+      const taxRate = body.addTax === false ? 0 : TAX_RATE;
+      const taxCents = Math.round(subtotalCents * taxRate);
+      const amountCents = subtotalCents + taxCents;
       const price = "$" + (amountCents / 100).toFixed(2);
       if (!order.key) order.key = crypto.randomUUID().replace(/-/g, "");
-      order.quote = { price, amountCents, note: String(body.note || "").trim().slice(0, 1000), sentAt: new Date().toISOString() };
+      order.quote = { price, amountCents, subtotalCents, taxCents, taxRate, note: String(body.note || "").trim().slice(0, 1000), sentAt: new Date().toISOString() };
       order.response = null;
       order.payment = null;
       order.status = "quoted";
