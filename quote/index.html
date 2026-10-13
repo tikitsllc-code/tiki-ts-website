@@ -82,6 +82,7 @@
   const app = document.getElementById('app');
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const firstName = n => String(n || '').trim().split(/\s+/)[0] || 'there';
+  const money = c => '$' + (c / 100).toFixed(2);
   const fmtDate = iso => new Date(iso).toLocaleDateString(undefined, { month: 'long', day: 'numeric' });
 
   function itemsHtml(o) {
@@ -103,6 +104,7 @@
       '<div><h1>Hi ' + esc(firstName(o.name)) + ', here\'s your quote!</h1>' +
       '<p class="lede">Thanks for your order request from ' + esc(fmtDate(o.createdAt)) + '. Take a look and let us know if you\'d like us to go ahead.</p></div>' +
       '<section class="card price-card"><div class="price-label">Your price</div><div class="price">' + esc(o.quote.price) + '</div>' +
+        (o.quote.taxCents ? '<p class="small" style="margin:0">' + esc(money(o.quote.subtotalCents)) + ' + ' + esc(money(o.quote.taxCents)) + ' Florida sales tax (' + esc(+(o.quote.taxRate * 100).toFixed(2)) + '%)</p>' : '') +
         (o.quote.note ? '<p class="note">' + esc(o.quote.note) + '</p>' : '') + '</section>' +
       '<section class="card"><h2 style="margin:0 0 10px">Your order</h2>' + itemsHtml(o) +
         (o.mockups.length ? '<div class="mockups">' + o.mockups.map(m => '<img alt="Where your design goes" src="' + API + '&file=' + encodeURIComponent(m.key) + '">').join('') + '</div>' : '') +
