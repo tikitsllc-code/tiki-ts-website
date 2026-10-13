@@ -103,6 +103,8 @@
   .price-form textarea { min-height: 44px; resize: vertical; }
   .price-big { font: 400 2rem/1 "Permanent Marker", cursive; color: var(--pink); }
   .send-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .qr-box { display: grid; gap: 8px; justify-items: start; }
+  .qr-box .qr { background: #fff; padding: 12px; border: 2px solid var(--ink); border-radius: 12px; }
   .hint { margin: 0; font-size: 0.86rem; color: var(--soft); }
   .their-msg { margin: 0; padding: 8px 10px; background: #fff; border-radius: 8px; border: 1px solid var(--line); white-space: pre-wrap; }
 
@@ -169,8 +171,9 @@
   <div id="orders" aria-live="polite"></div>
 </main>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-  const FN = '/.netlify/functions/';
+  const FN ='/.netlify/functions/';
   const STATUS = { new: 'New', quoted: 'Price sent', approved: 'Said yes', paid: 'Paid', declined: 'Declined', done: 'Done' };
   let ORDERS = [];
   let SHOW = 'new';
@@ -215,13 +218,29 @@
   const fmtDate = iso => { const d = new Date(iso); return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) + ' at ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }); };
   const firstName = n => String(n || '').trim().split(/\s+/)[0] || 'there';
   const emailIn = s => (String(s || '').match(/[^\s@]+@[^\s@]+\.[^\s@]+/) || [])[0] || '';
-  const phoneIn = s => { const d = String(s || '').replace(/\D/g, ''); return d.length === 10 ? '+1' + d : d.length === 11 && d[0] === '1' ? '+' + d : ''; };
-  const quoteLink = o => location.origin + '/quote/?id=' + encodeURIComponent(o.id) + '&k=' + encodeURIComponent(o.key || '');
-  const priceMessage = o =>
-    'Hi ' + firstName(o.name) + '! Thanks for your quote request with Tiki T\'s.\n\n' +
-    'Your price is ' + o.quote.price + '.' + (o.quote.note ? '\n' + o.quote.note : '') + '\n\n' +
-    'See your order and pay to get started here:\n' + quoteLink(o) + '\n\n' +
-    'Nothing gets printed until you say yes. Thanks!\nTiki T\'s';
+  const phoneIn = s => {
+    const m = String(s || '').match(/(?:\+?1[\s.-]*)?\(?\d{3}\)?[\s.-]*\d{3}[\s.-]*\d{4}/);
+    const d = m ? m[0].replace(/\D/g, '') : '';
+    return d.length === 10 ? '+1' + d : d.length === 11 && d[0] === '1' ? '+' + d : '';
+  };
+  const onPhone = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const smsLink = (phone, msg) => 'sms:' + phone + '?&body=' + encodeURIComponent(msg);
+  // Customer links always use the shop's own domain, even when this page is opened on tikits.netlify.app
+  const SITE = /netlify\.app$|^localhost$/.test(location.hostname) ? 'https://tikitsllc.com' : location.origin;
+  const quoteLink = o => SITE + '/quote/?id=' + encodeURIComponent(o.id) + '&k=' + encodeURIComponent(o.key || '');
+  const orderWhat = o => (o.items || []).map(it => [it.total, it.product].filter(Boolean).join(' ')).filter(Boolean).join(' and ') || 'custom order';
+  const priceSubject = o => 'Your Tiki T\'s Quote: ' + orderWhat(o);
+  // byText = the shorter version for a text message
+  const priceMessage = (o, byText) => byText
+    ? 'Hello ' + firstName(o.name) + ', this is Tiki T\'s. Your quote for ' + orderWhat(o) + ' is ready: ' + o.quote.price + '.' + (o.quote.note ? ' ' + o.quote.note : '') + '\n\n' +
+      'View your mockup and approve your order here:\n' + quoteLink(o) + '\n\n' +
+      'Reply to this text with any questions. Thank you!'
+    : 'Hello ' + firstName(o.name) + ',\n\n' +
+      'Thank you for choosing Tiki T\'s. We\'ve reviewed your request for ' + orderWhat(o) + ', and your quote is ready.\n\n' +
+      'Quote total: ' + o.quote.price + (o.quote.note ? '\nNotes: ' + o.quote.note : '') + '\n\n' +
+      'To view your order details and design mockup, and to approve your order, please visit:\n' + quoteLink(o) + '\n\n' +
+      'Production begins once your order is approved and payment is received. If you have any questions or would like to make changes, simply reply to this email.\n\n' +
+      'Thank you for your business,\nTiki T\'s\nCustom Apparel & Printing\nNew Smyrna Beach, FL\ntikitsllc@gmail.com';
 
   function priceHtml(o) {
     const st = statusOf(o);
@@ -238,8 +257,9 @@
     const email = emailIn(o.contact), phone = phoneIn(o.contact);
     const msg = priceMessage(o);
     const sendButtons =
-      (email ? '<a class="btn pink" target="_blank" rel="noopener" href="https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(email) + '&su=' + encodeURIComponent('Your Tiki T\'s quote') + '&body=' + encodeURIComponent(msg) + '">Email it (Gmail)</a>' : '') +
-      (phone ? '<a class="btn pink" href="sms:' + phone + '?&body=' + encodeURIComponent(msg) + '">Text it</a>' : '') +
+      (email ? '<a class="btn pink" target="_blank" rel="noopener" href="https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(email) + '&su=' + encodeURIComponent(priceSubject(o)) + '&body=' + encodeURIComponent(msg) + '">Email it (Gmail)</a>' : '') +
+      (phone ? (onPhone ? '<a class="btn pink" href="' + smsLink(phone, priceMessage(o, true)) + '">Text it</a>'
+                        : '<button type="button" class="btn pink" data-text-qr>Text it from my phone</button>') : '') +
       '<button type="button" class="btn" data-copy-msg>Copy message</button>' +
       '<button type="button" class="btn" data-copy-link>Copy link only</button>';
     if (o.paid) {
@@ -261,6 +281,7 @@
       (q.note ? '<p class="hint">Note: ' + esc(q.note) + '</p>' : '') +
       '<p class="hint">Saved ' + esc(fmtDate(q.sentAt)) + '. Waiting for their answer. Haven\'t sent it yet? Use a button below.</p>' +
       '<div class="send-row">' + sendButtons + '<button type="button" class="btn" data-edit-price>Change price</button></div>' +
+      '<div class="qr-box" hidden></div>' +
       (!email && !phone ? '<p class="hint">Their contact info didn\'t look like an email or phone number, so copy the message and send it however you reach them.</p>' : '') +
       '</div>';
   }
@@ -395,7 +416,22 @@
     }
     if (e.target.closest('[data-edit-price]')) { editing.add(id); render(); return; }
     if (e.target.closest('[data-cancel-edit]')) { editing.delete(id); render(); return; }
-    if (e.target.closest('[data-copy-msg]')) { copy(priceMessage(order), e.target.closest('[data-copy-msg]')); return; }
+    if (e.target.closest('[data-copy-msg]')) { copy(priceMessage(order, !emailIn(order.contact) && !!phoneIn(order.contact)), e.target.closest('[data-copy-msg]')); return; }
+    if (e.target.closest('[data-text-qr]')) {
+      // On a computer: show a code to scan with the phone camera, which opens Messages ready to send
+      const box = card.querySelector('.qr-box');
+      box.hidden = !box.hidden;
+      if (!box.hidden && !box.dataset.ready) {
+        box.innerHTML = '<p class="hint"><b>Scan this with your phone camera.</b> Your Messages app opens with their number and the message filled in. Just hit send.</p><div class="qr"></div>';
+        try {
+          new QRCode(box.querySelector('.qr'), { text: 'SMSTO:' + phoneIn(order.contact) + ':' + priceMessage(order, true), width: 300, height: 300, correctLevel: QRCode.CorrectLevel.L });
+          box.dataset.ready = '1';
+        } catch (err) {
+          box.innerHTML = '<p class="hint">Couldn\'t make the code. Use <b>Copy message</b> and text it to ' + esc(order.contact) + ' from your phone.</p>';
+        }
+      }
+      return;
+    }
     if (e.target.closest('[data-copy-link]')) { copy(quoteLink(order), e.target.closest('[data-copy-link]')); return; }
     const st = e.target.closest('[data-status]');
     if (st) {
