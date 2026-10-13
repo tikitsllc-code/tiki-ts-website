@@ -67,18 +67,26 @@ export default async (req) => {
       order.response = { answer: "accept", message: String(body.message || "").trim().slice(0, 1000), at: new Date().toISOString() };
       if (order.status !== "paid") order.status = "approved";
       const back = url.origin + "/quote/?id=" + encodeURIComponent(id) + "&k=" + encodeURIComponent(k);
-      const session = await stripe("checkout/sessions", {
+      const q = order.quote;
+      const params = {
         mode: "payment",
         client_reference_id: id,
         "metadata[order_id]": id,
         "line_items[0][quantity]": "1",
         "line_items[0][price_data][currency]": "usd",
-        "line_items[0][price_data][unit_amount]": String(order.quote.amountCents),
+        "line_items[0][price_data][unit_amount]": String(q.taxCents ? q.subtotalCents : q.amountCents),
         "line_items[0][price_data][product_data][name]": "Tiki T's custom order",
         "line_items[0][price_data][product_data][description]": orderSummary(order) || "Custom printed order",
         success_url: back + "&session_id={CHECKOUT_SESSION_ID}",
         cancel_url: back
-      });
+      };
+      if (q.taxCents) {
+        params["line_items[1][quantity]"] = "1";
+        params["line_items[1][price_data][currency]"] = "usd";
+        params["line_items[1][price_data][unit_amount]"] = String(q.taxCents);
+        params["line_items[1][price_data][product_data][name]"] = "Florida sales tax (" + +(q.taxRate * 100).toFixed(2) + "%)";
+      }
+      const session = await stripe("checkout/sessions", params);
       order.payment = { sessionId: session.id, startedAt: new Date().toISOString() };
       await orders.setJSON(id, order);
       return Response.json({ url: session.url });
