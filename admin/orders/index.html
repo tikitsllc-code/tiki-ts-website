@@ -103,6 +103,7 @@
   .price-form textarea { min-height: 44px; resize: vertical; }
   .price-big { font: 400 2rem/1 "Permanent Marker", cursive; color: var(--pink); }
   .send-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tax-check { display: flex; gap: 8px; align-items: center; margin-top: 8px; font-weight: 600; }
   .qr-box { display: grid; gap: 8px; justify-items: start; }
   .qr-box .qr { background: #fff; padding: 12px; border: 2px solid var(--ink); border-radius: 12px; }
   .hint { margin: 0; font-size: 0.86rem; color: var(--soft); }
@@ -223,7 +224,9 @@
     const d = m ? m[0].replace(/\D/g, '') : '';
     return d.length === 10 ? '+1' + d : d.length === 11 && d[0] === '1' ? '+' + d : '';
   };
-  const onPhone = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const TAX_RATE = 0.065; // Florida 6% + Volusia County 0.5% (must match netlify/functions/orders.mjs)
+  const money = c => '$' + (c / 100).toFixed(2);
+  const onPhone =/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   const smsLink = (phone, msg) => 'sms:' + phone + '?&body=' + encodeURIComponent(msg);
   // Customer links always use the shop's own domain, even when this page is opened on tikits.netlify.app
   const SITE = /netlify\.app$|^localhost$/.test(location.hostname) ? 'https://tikitsllc.com' : location.origin;
@@ -232,12 +235,12 @@
   const priceSubject = o => 'Your Tiki T\'s Quote: ' + orderWhat(o);
   // byText = the shorter version for a text message
   const priceMessage = (o, byText) => byText
-    ? 'Hello ' + firstName(o.name) + ', this is Tiki T\'s. Your quote for ' + orderWhat(o) + ' is ready: ' + o.quote.price + '.' + (o.quote.note ? ' ' + o.quote.note : '') + '\n\n' +
+    ? 'Hello ' + firstName(o.name) + ', this is Tiki T\'s. Your quote for ' + orderWhat(o) + ' is ready: ' + o.quote.price + (o.quote.taxCents ? ' including tax' : '') + '.' + (o.quote.note ? ' ' + o.quote.note : '') + '\n\n' +
       'View your mockup and approve your order here:\n' + quoteLink(o) + '\n\n' +
       'Reply to this text with any questions. Thank you!'
     : 'Hello ' + firstName(o.name) + ',\n\n' +
       'Thank you for choosing Tiki T\'s. We\'ve reviewed your request for ' + orderWhat(o) + ', and your quote is ready.\n\n' +
-      'Quote total: ' + o.quote.price + (o.quote.note ? '\nNotes: ' + o.quote.note : '') + '\n\n' +
+      'Quote total: ' + o.quote.price + (o.quote.taxCents ? ' (' + money(o.quote.subtotalCents) + ' + ' + money(o.quote.taxCents) + ' Florida sales tax)' : '') + (o.quote.note ? '\nNotes: ' + o.quote.note : '') + '\n\n' +
       'To view your order details and design mockup, and to approve your order, please visit:\n' + quoteLink(o) + '\n\n' +
       'Production begins once your order is approved and payment is received. If you have any questions or would like to make changes, simply reply to this email.\n\n' +
       'Thank you for your business,\nTiki T\'s\nCustom Apparel & Printing\n927 S Ridgewood Ave, Edgewater, FL 32132\ntikitsllc@gmail.com\ntikitsllc.com';
@@ -248,7 +251,9 @@
     if (!q || editing.has(o.id)) {
       return '<div class="price-box"><h3>Send them a price</h3>' +
         '<div class="price-form">' +
-          '<div><label for="price-' + o.id + '">Price ($)</label><input id="price-' + o.id + '" data-price inputmode="decimal" placeholder="45.00" value="' + esc(q ? (q.amountCents ? (q.amountCents / 100).toFixed(2) : q.price) : '') + '"></div>' +
+          '<div><label for="price-' + o.id + '">Price before tax ($)</label><input id="price-' + o.id + '" data-price inputmode="decimal" placeholder="45.00" value="' + esc(q ? ((q.subtotalCents || q.amountCents) ? ((q.subtotalCents || q.amountCents) / 100).toFixed(2) : q.price) : '') + '">' +
+            '<label class="tax-check"><input type="checkbox" data-add-tax' + (!q || q.taxCents ? ' checked' : '') + '> Add Florida sales tax (' + +(TAX_RATE * 100).toFixed(2) + '%)</label>' +
+            '<p class="hint" data-total></p></div>' +
           '<div><label for="note-' + o.id + '">Note for them (optional)</label><textarea id="note-' + o.id + '" data-note placeholder="Includes front and back print. Ready in about a week.">' + esc(q ? q.note : '') + '</textarea></div>' +
         '</div>' +
         '<div class="send-row"><button type="button" class="btn pink" data-save-price>Save price</button>' + (q ? '<button type="button" class="btn" data-cancel-edit>Cancel</button>' : '') + '</div>' +
@@ -278,6 +283,7 @@
         '</div>';
     }
     return '<div class="price-box"><h3>Price sent: <span class="price-big">' + esc(q.price) + '</span></h3>' +
+      (q.taxCents ? '<p class="hint">' + esc(money(q.subtotalCents)) + ' + ' + esc(money(q.taxCents)) + ' sales tax</p>' : '') +
       (q.note ? '<p class="hint">Note: ' + esc(q.note) + '</p>' : '') +
       '<p class="hint">Saved ' + esc(fmtDate(q.sentAt)) + '. Waiting for their answer. Haven\'t sent it yet? Use a button below.</p>' +
       '<div class="send-row">' + sendButtons + '<button type="button" class="btn" data-edit-price>Change price</button></div>' +
@@ -352,7 +358,21 @@
     const emptyText = { new: 'No new orders right now.', quoted: 'No prices waiting on an answer.', approved: 'Nobody is waiting to pay right now.', paid: 'Nothing paid and waiting to print.', declined: 'No declined orders.', done: 'Nothing finished yet.', all: 'No orders yet.' };
     box.innerHTML = list.length ? list.map(orderHtml).join('') : '<p class="empty">' + emptyText[SHOW] + '</p>';
     box.querySelectorAll('img[data-key]').forEach(loadImage);
+    box.querySelectorAll('[data-total]').forEach(el => showTotal(el.closest('.order')));
   }
+
+  // Live "subtotal + tax = total" under the price box
+  function showTotal(card) {
+    const out = card.querySelector('[data-total]');
+    const amount = parseFloat(card.querySelector('[data-price]').value.replace(/[^0-9.]/g, ''));
+    if (!(amount > 0)) { out.textContent = ''; return; }
+    const sub = Math.round(amount * 100);
+    const tax = card.querySelector('[data-add-tax]').checked ? Math.round(sub * TAX_RATE) : 0;
+    out.textContent = tax ? money(sub) + ' + ' + money(tax) + ' tax = ' + money(sub + tax) + ' total' : 'Total: ' + money(sub) + ' (no tax)';
+  }
+  document.getElementById('orders').addEventListener('input', e => {
+    if (e.target.matches('[data-price], [data-add-tax]')) showTotal(e.target.closest('.order'));
+  });
 
   async function fileBlob(key) {
     if (blobUrls.has(key)) return blobUrls.get(key);
@@ -407,9 +427,10 @@
       const btn = e.target.closest('[data-save-price]');
       const price = card.querySelector('[data-price]').value.trim();
       const note = card.querySelector('[data-note]').value.trim();
+      const addTax = card.querySelector('[data-add-tax]').checked;
       if (!price) { card.querySelector('[data-price]').focus(); return; }
       btn.disabled = true; btn.textContent = 'Saving...';
-      const res = await post({ id, action: 'quote', price, note });
+      const res = await post({ id, action: 'quote', price, note, addTax });
       if (res.ok) { replaceOrder(await res.json()); editing.delete(id); render(); }
       else { btn.disabled = false; btn.textContent = 'Save price'; alert(await res.text()); }
       return;
