@@ -103,7 +103,9 @@
   .price-form textarea { min-height: 44px; resize: vertical; }
   .price-big { font: 400 2rem/1 "Permanent Marker", cursive; color: var(--pink); }
   .send-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .tax-check { display: flex; gap: 8px; align-items: center; margin-top: 8px; font-weight: 600; }
+  .price-box .tax-check { display: flex; gap: 8px; align-items: center; margin-top: 8px; font-weight: 600; }
+  .price-box .tax-check input { width: auto; margin: 0; flex: none; }
+  .price-box [data-total] { margin: 6px 0 0; font-weight: 800; color: var(--ink); }
   .qr-box { display: grid; gap: 8px; justify-items: start; }
   .qr-box .qr { background: #fff; padding: 12px; border: 2px solid var(--ink); border-radius: 12px; }
   .hint { margin: 0; font-size: 0.86rem; color: var(--soft); }
@@ -252,7 +254,7 @@
       return '<div class="price-box"><h3>Send them a price</h3>' +
         '<div class="price-form">' +
           '<div><label for="price-' + o.id + '">Price before tax ($)</label><input id="price-' + o.id + '" data-price inputmode="decimal" placeholder="45.00" value="' + esc(q ? ((q.subtotalCents || q.amountCents) ? ((q.subtotalCents || q.amountCents) / 100).toFixed(2) : q.price) : '') + '">' +
-            '<label class="tax-check"><input type="checkbox" data-add-tax' + (!q || q.taxCents ? ' checked' : '') + '> Add Florida sales tax (' + +(TAX_RATE * 100).toFixed(2) + '%)</label>' +
+            '<label class="tax-check"><input type="checkbox" data-add-tax' + (!q || q.taxCents ? ' checked' : '') + '> Add FL sales tax (' + +(TAX_RATE * 100).toFixed(2) + '%)</label>' +
             '<p class="hint" data-total></p></div>' +
           '<div><label for="note-' + o.id + '">Note for them (optional)</label><textarea id="note-' + o.id + '" data-note placeholder="Includes front and back print. Ready in about a week.">' + esc(q ? q.note : '') + '</textarea></div>' +
         '</div>' +
@@ -483,3 +485,7 @@
 </script>
 </body>
 </html>
+
+Claude is active in this tab group
+Open chat
+Dismiss
