@@ -381,49 +381,11 @@
   }
   .social:hover { background: var(--teal); color: var(--ink); }
 
-  /* Artwork upload */
-  .upload-drop {
-    display: flex; align-items: center; gap: 14px;
-    background: #fff; border: 2px dashed var(--hibiscus); border-radius: 12px;
-    padding: 16px; cursor: pointer; font-weight: 400;
-  }
-  .upload-drop:hover, .upload-drop.is-over { background: #fff4b8; border-style: solid; }
-  .upload-drop:focus-within { outline: 3px solid var(--sun); }
-  .upload-drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
-  .upload-icon {
-    display: grid; place-items: center; width: 40px; height: 40px; flex: none;
-    border-radius: 50%; background: var(--hibiscus); color: #fff; font: 900 1.6rem/1 var(--body);
-  }
-  .file-list { display: flex; flex-direction: column; gap: 8px; }
-  .file-list:empty { display: none; }
-  .file-item {
-    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-    background: #fff; border: 2px solid var(--ink); border-radius: 12px; padding: 8px 10px;
-  }
-  .file-item img, .file-type {
+  /* Shown when a design is a file, not a picture (PDF, AI...) */
+  .file-type {
     width: 48px; height: 48px; flex: none; border-radius: 8px; border: 1px solid #d9cfb5; object-fit: contain; background: var(--sky-pale);
+    display: grid; place-items: center; font: 900 0.7rem/1 var(--body); color: var(--ink-soft);
   }
-  .file-type { display: grid; place-items: center; font: 900 0.7rem/1 var(--body); color: var(--ink-soft); }
-  .file-name { flex: 1 1 140px; min-width: 0; font-weight: 800; font-size: 0.9rem; overflow-wrap: anywhere; }
-  .file-name small { display: block; font-weight: 400; color: var(--ink-soft); }
-  .file-btn {
-    font: 800 0.8rem/1 var(--body); background: #fff; color: var(--ink);
-    border: 2px solid var(--ink); border-radius: 999px; padding: 7px 11px; cursor: pointer;
-  }
-  .file-btn:hover { background: var(--sun); }
-  .file-remove { border-color: var(--hibiscus); color: var(--hibiscus); }
-  .file-remove:hover { background: var(--hibiscus); color: #fff; }
-  /* "Goes on" buttons under each uploaded file */
-  .file-for { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding-top: 8px; border-top: 1px dashed #d9cfb5; }
-  .file-for-label { font-weight: 800; font-size: 0.85rem; margin-right: 2px; }
-  .for-chip {
-    font: 800 0.8rem/1 var(--body); background: #fff; color: var(--ink);
-    border: 2px solid var(--ink); border-radius: 999px; padding: 7px 11px; cursor: pointer;
-  }
-  .for-chip:hover { background: #fff4b8; }
-  .for-chip[aria-pressed="true"] { background: var(--teal); box-shadow: 2px 2px 0 var(--ink); }
-  .for-chip[aria-pressed="true"]::before { content: "\2713  "; }
-  .file-for-none { font-size: 0.82rem; font-weight: 800; color: var(--hibiscus); }
   /* Which design goes on each item */
   .item-designs { margin: 0 0 10px; }
   .item-designs[hidden] { display: none; }
@@ -470,8 +432,37 @@
   .add-color:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
   .color-sum { font-weight: 800; }
   .color-sum strong { color: var(--hibiscus); font-size: 1.1rem; }
-  .color-rows.sized .color-row { grid-template-columns: auto minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 0.8fr) 96px auto; }
+  .color-rows.sized .color-row { grid-template-columns: auto minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 0.8fr) 88px 62px auto; }
   .color-rows[style] .color-row { grid-template-columns: var(--cols); }
+  /* The little Design box on each line */
+  .line-art { position: relative; width: 62px; height: 48px; }
+  .line-art-box {
+    display: grid; place-items: center; width: 100%; height: 100%; cursor: pointer; overflow: hidden;
+    background: #fff; border: 2px dashed var(--hibiscus); border-radius: 10px;
+  }
+  .line-art-box:hover, .line-art.is-over .line-art-box { background: #fff4b8; border-style: solid; }
+  .line-art-box:focus-within { outline: 3px solid var(--sun); outline-offset: 1px; }
+  .line-art-pick { position: absolute; width: 1px; height: 1px; opacity: 0; }
+  .line-art-face { display: flex; flex-direction: column; align-items: center; line-height: 1; pointer-events: none; }
+  .line-art-plus {
+    display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
+    background: var(--hibiscus); color: #fff; font: 900 1rem/1 var(--body);
+  }
+  .line-art-add { font: 800 0.68rem/1 var(--body); color: var(--hibiscus); margin-top: 3px; }
+  .line-art.has-art .line-art-box { border: 2px solid var(--ink); background: var(--sky-pale); }
+  .line-art.has-art .line-art-face, .line-art-face img, .line-art-face .file-type { width: 100%; height: 100%; }
+  .line-art-face img { object-fit: contain; display: block; }
+  .line-art-face .file-type { display: grid; place-items: center; font: 900 0.7rem/1 var(--body); color: var(--ink-soft); }
+  .line-art-x {
+    position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; padding: 0;
+    border-radius: 50%; border: 2px solid var(--ink); background: #fff; color: var(--hibiscus);
+    font: 900 0.95rem/1 var(--body); cursor: pointer;
+  }
+  .line-art-x[hidden] { display: none; }
+  .line-art-x:hover { background: var(--hibiscus); color: #fff; }
+  .line-err { grid-column: 1 / -1; margin: 0; }
+  .line-err[hidden] { display: none; }
+  .design-btn .dn small { display: block; font-weight: 400; font-size: 0.75rem; color: var(--ink-soft); white-space: normal; }
   @media (max-width: 700px) {
     .color-row, .color-rows.sized .color-row, .color-rows[style] .color-row { grid-template-columns: 1fr 1fr; }
     .color-row .dot { display: none; }
@@ -669,18 +660,6 @@
           <p class="hint" data-c="form.itemsHint">Each item you pick gets its own section below for sizes, colors and print details.</p>
           <div class="options items" id="item-picks"></div>
         </fieldset>
-
-        <div class="field full upload-field">
-          <label for="q-files" data-c="form.uploadLabel">Upload your design (optional)</label>
-          <p class="hint" data-c="form.uploadHint">Logos, photos, sketches or examples you like. Up to 5 files. Big photos are shrunk automatically so they send. Under each file, tap what it goes on (shirts, hoodies, cups...). Then drag it where you want it on the picture below.</p>
-          <label class="upload-drop" for="q-files">
-            <span class="upload-icon" aria-hidden="true">+</span>
-            <span><b>Tap to pick files</b> or drop them here</span>
-            <input type="file" id="q-files" accept="image/*,.pdf,.ai,.eps,.svg,.psd" multiple>
-          </label>
-          <div class="file-list" id="q-file-list"></div>
-          <p class="error" id="q-file-error" hidden></p>
-        </div>
 
         <div id="item-details" class="field full"></div>
 
@@ -1170,8 +1149,9 @@
         '<input id="extra-' + it.key + '" placeholder="' + escT(it.extra.ph) + '"></div>' : '') +
       '<fieldset class="group"><legend>' + escT(it.sized ? txt(FORM.linesQuestionSized, 'What do you need? Add one line for each color and size.') : txt(FORM.linesQuestion, 'What do you need? Add one line for each color.')) + '</legend>' +
         (it.sized ? '<p class="hint">' + escT(txt(FORM.sizesHint, 'Example: 2 black men\'s L on one line, 3 white women\'s M on the next, 1 orange kids S on the next. Kids sizes are youth sizes.')) + (CONTENT.sizeChart ? ' <a href="#faq">' + escT(txt(FORM.sizeChartLink, 'See the size chart')) + '</a>.' : '') + '</p>' : '') +
+        '<p class="hint">' + escT(txt(FORM.lineDesignHint, 'Got a design? Tap the + in the Design box on a line to add the picture for those ' + it.one + 's. Each line can have its own design.')) + '</p>' +
         '<div class="color-rows' + (it.sized ? ' sized' : '') + '" id="colors-' + it.key + '" style="--cols: auto minmax(0, 1.5fr)' +
-          (it.styles.length ? ' minmax(0, 1.1fr)' : '') + (it.sized ? ' minmax(0, 1fr) minmax(0, 0.8fr)' : '') + ' 96px auto"></div>' +
+          (it.styles.length ? ' minmax(0, 1.1fr)' : '') + (it.sized ? ' minmax(0, 1fr) minmax(0, 0.8fr)' : '') + ' 88px 62px auto"></div>' +
         '<div class="color-foot"><button type="button" class="add-color" data-item="' + it.key + '">' + escT(txt(FORM.addLine, '+ Add another line')) + '</button>' +
         '<span class="color-sum">' + escT(it.label) + ' total: <strong id="csum-' + it.key + '">0</strong></span></div>' +
       '</fieldset>' +
@@ -1218,8 +1198,15 @@
         : '') +
       '<div class="field cqty-field"><label for="cqty-' + n + '">How many?</label>' +
         '<input class="cqty" id="cqty-' + n + '" type="number" min="1" inputmode="numeric" placeholder="0"></div>' +
-      '<button type="button" class="remove-color" aria-label="Remove this line">Remove</button>';
+      '<div class="field cart-field"><label for="cart-' + n + '">' + escT(txt(FORM.lineDesignLabel, 'Design')) + '</label>' +
+        '<div class="line-art">' +
+          '<label class="line-art-box"><input type="file" class="line-art-pick" id="cart-' + n + '" accept="image/*,.pdf,.ai,.eps,.svg,.psd"><span class="line-art-face"></span></label>' +
+          '<button type="button" class="line-art-x" aria-label="Remove the design from this line" hidden>&times;</button>' +
+        '</div></div>' +
+      '<button type="button" class="remove-color" aria-label="Remove this line">Remove</button>' +
+      '<p class="error line-err" aria-live="polite" hidden></p>';
     document.getElementById('colors-' + it.key).appendChild(row);
+    renderLineArt(row);
     updateRemoveButtons(it);
     return row;
   }
@@ -1247,7 +1234,8 @@
       color: sel === 'other' ? (r.querySelector('.cother').value.trim() || 'Other color') : sel,
       fit: fit ? fit.label : '',
       size: sizeSel ? sizeSel.value : '',
-      qty: num(r.querySelector('.cqty').value)
+      qty: num(r.querySelector('.cqty').value),
+      design: LINE_ART.has(r) ? LINE_ART.get(r).name : ''
     };
   }).filter(l => l.qty > 0);
   const itemTotal = it => lineList(it).reduce((t, l) => t + l.qty, 0);
@@ -1266,21 +1254,25 @@
   const TIKI_RATIO = 26 / 20;
 
   /* ---------- Uploaded artwork ----------
-     Customers can attach up to 5 files and pick which items each one goes on.
-     On items with a picture, the design picked for that item sits in the "drag me"
-     box, and every placed print remembers its own design (t.art), so the front and
-     back of a shirt can carry different designs. Without a design it's the tiki. */
-  const MAX_FILES = 5;
-  let FILES = [];
+     Each order line has its own small Design box, so a design belongs to those
+     exact shirts (color, fit, size). On items with a picture, the design picked
+     for that item sits in the "drag me" box, and every placed print remembers its
+     own design (t.art), so the front and back can carry different designs.
+     Without a design it's the tiki. */
+  const MAX_FILES = 10;
+  let FILES = [];            // every design on a line of a picked item, no repeats
   const META = new Map();    // picture file -> { url, ratio }
-  const GOES_ON = new Map(); // file -> Set of item keys it's printed on
+  const LINE_ART = new Map(); // order line element -> its design file
+  const SAME_FILE = new Map(); // "name|size|modified" of what was picked -> the ready file, so one design isn't uploaded twice
   const TRAY_ART = {};       // item key -> picture in its "drag me" box
   const artRatio = file => file && META.has(file) ? META.get(file).ratio : TIKI_RATIO;
   const ratioOf = t => artRatio(t.art);
   const markFor = (key, file, x, y, w, h) => file && META.has(file)
     ? '<image href="' + META.get(file).url + '" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" preserveAspectRatio="xMidYMid meet"/>'
     : '<use href="#tiki-mark-' + key + '" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '"/>';
-  const designsFor = key => FILES.filter(f => GOES_ON.has(f) && GOES_ON.get(f).has(key));
+  const rowsOf = key => [...document.querySelectorAll('#colors-' + key + ' .color-row')];
+  const designsFor = key => [...new Set(rowsOf(key).map(r => LINE_ART.get(r)).filter(Boolean))];
+  const syncFiles = () => { FILES = [...new Set(picked().flatMap(designsFor))]; };
   const trayArt = key => {
     const pics = designsFor(key).filter(f => META.has(f));
     if (!pics.includes(TRAY_ART[key])) TRAY_ART[key] = pics[0] || null;
@@ -1316,20 +1308,39 @@
   const thumb = f => META.has(f)
     ? '<img src="' + urlFor(f) + '" alt="">'
     : '<span class="file-type">' + esc((f.name.split('.').pop() || 'file').toUpperCase()) + '</span>';
-  /* Put a design on an item, or take it off */
-  function setGoesOn(file, key, on) {
-    if (!GOES_ON.has(file)) GOES_ON.set(file, new Set());
+  /* Put a design on one order line, or take it off (file = null) */
+  function setLineArt(row, file) {
+    const key = row.closest('.color-rows').id.slice(7);
     const hadPicture = designsFor(key).some(f => META.has(f));
-    if (on) {
-      GOES_ON.get(file).add(key);
-      // tikis placed before any design was picked take on the first design
-      if (!hadPicture && META.has(file)) (TIKIS[key] || []).forEach(t => { if (!t.art) t.art = file; });
-      if (META.has(file)) TRAY_ART[key] = file;
-    } else {
-      GOES_ON.get(file).delete(key);
+    if (file) LINE_ART.set(row, file); else LINE_ART.delete(row);
+    if (file && META.has(file)) {
+      // tikis placed before any design was added take on the first design
+      if (!hadPicture) (TIKIS[key] || []).forEach(t => { if (!t.art) t.art = file; });
+      TRAY_ART[key] = file;
     }
   }
+  /* What a line is, in a few words: "Yellow, Men's S" */
+  const lineName = row => {
+    const v = c => { const el = row.querySelector(c); return el && el.value ? el.options ? el.options[el.selectedIndex].text : el.value : ''; };
+    const color = v('.cname') === 'Other color' ? (row.querySelector('.cother').value.trim() || 'Other color') : v('.cname');
+    return [color, v('.cstyle'), [v('.cfit'), v('.csize')].filter(x => x && x !== 'Fit' && x !== 'Size').join(' ')]
+      .filter(x => x && x !== 'Pick a color' && x !== 'Style').join(', ') || 'Line ' + (rowsOf(row.closest('.color-rows').id.slice(7)).indexOf(row) + 1);
+  };
+  /* The little Design box on each line */
+  function renderLineArt(row) {
+    const box = row.querySelector('.line-art');
+    const file = LINE_ART.get(row);
+    box.classList.toggle('has-art', !!file);
+    box.querySelector('.line-art-face').innerHTML = file
+      ? thumb(file)
+      : '<span class="line-art-plus" aria-hidden="true">+</span><span class="line-art-add">Add</span>';
+    box.querySelector('.line-art-pick').setAttribute('aria-label', file ? 'Change the design for this line (now ' + file.name + ')' : 'Add a design for this line');
+    box.querySelector('.line-art-pick').title = file ? file.name + ' (tap to change)' : 'Upload a design for these shirts';
+    row.querySelector('.line-art-x').hidden = !file;
+  }
   function afterArtChange() {
+    syncFiles();
+    document.querySelectorAll('.color-row').forEach(renderLineArt);
     // a print whose design no longer goes on that item comes off the picture
     Object.keys(TIKIS).forEach(key => {
       const mine = designsFor(key);
@@ -1346,48 +1357,31 @@
       if (h > 20.8) { h = 20.8; w = h / artRatio(file); }
       g.innerHTML = markFor(key, file, 17 - w / 2, 37.4 - h / 2, w, h);
     });
-    renderFileList();
     renderDesignPicks();
   }
-  function renderFileList() {
-    const list = document.getElementById('q-file-list');
-    const items = ITEMS.filter(it => picked().includes(it.key));
-    list.innerHTML = FILES.map((f, i) => {
-      const on = GOES_ON.get(f) || new Set();
-      return '<div class="file-item">' + thumb(f) +
-        '<span class="file-name">' + esc(f.name) + '<small>' + fmtSize(f.size) + '</small></span>' +
-        '<button type="button" class="file-btn file-remove" data-drop-file="' + i + '" aria-label="Remove ' + esc(f.name) + '">Remove</button>' +
-        '<div class="file-for" role="group" aria-label="What ' + esc(f.name) + ' goes on">' + (items.length
-          ? '<span class="file-for-label">Goes on:</span>' +
-            items.map(it => '<button type="button" class="for-chip" data-file="' + i + '" data-for="' + it.key + '" aria-pressed="' + on.has(it.key) + '">' + esc(it.label) + '</button>').join('') +
-            (items.some(it => on.has(it.key)) ? '' : '<span class="file-for-none">Tap what this design goes on</span>')
-          : '<span class="file-for-none">Pick what you want printed above, then choose what this design goes on.</span>') +
-        '</div></div>';
-    }).join('');
-  }
-  /* In each item's section: the designs going on it. On items with a picture,
+  /* In each item's section: the designs on its lines. On items with a picture,
      tapping one puts it in the "drag me" box. */
   function renderDesignPicks() {
     ITEMS.forEach(it => {
       const box = document.getElementById('designs-' + it.key);
-      box.hidden = !FILES.length;
-      if (!FILES.length) { box.innerHTML = ''; return; }
       const mine = designsFor(it.key);
+      box.hidden = !mine.length;
+      if (!mine.length) { box.innerHTML = ''; return; }
       const placer = !!DIAGRAMS[it.key];
       const tray = placer ? trayArt(it.key) : null;
       const pics = mine.filter(f => META.has(f));
-      const name = esc(it.label.toLowerCase());
-      box.innerHTML = '<p class="design-q">Design' + (mine.length > 1 ? 's' : '') + ' for the ' + name + ':</p>' + (mine.length
-        ? '<div class="design-pick">' + mine.map(f => {
-            const inner = thumb(f) + '<span class="dn">' + esc(f.name) + '</span>';
-            return placer && META.has(f)
-              ? '<button type="button" class="design-btn" data-tray="' + FILES.indexOf(f) + '" aria-pressed="' + (tray === f) + '">' + inner + '</button>'
-              : '<span class="design-btn">' + inner + '</span>';
-          }).join('') + '</div>' +
-          (placer && pics.length
-            ? '<p class="design-note">' + (pics.length > 1 ? 'Tap a design to put it in the box, then drag it onto the ' + esc(it.one) + '.' : 'Drag it from the box onto the ' + esc(it.one) + '.') + '</p>'
-            : '')
-        : '<p class="design-note design-none">No design picked for the ' + name + ' yet. Under your uploaded files, tap <b>' + esc(it.label) + '</b> on the one that goes on them.</p>');
+      const rows = rowsOf(it.key);
+      box.innerHTML = '<p class="design-q">Your design' + (mine.length > 1 ? 's' : '') + ':</p>' +
+        '<div class="design-pick">' + mine.map((f, i) => {
+          const on = rows.filter(r => LINE_ART.get(r) === f).map(lineName).join(' · ');
+          const inner = thumb(f) + '<span class="dn">' + esc(f.name) + '<small>' + esc(on) + '</small></span>';
+          return placer && META.has(f)
+            ? '<button type="button" class="design-btn" data-tray="' + i + '" aria-pressed="' + (tray === f) + '">' + inner + '</button>'
+            : '<span class="design-btn">' + inner + '</span>';
+        }).join('') + '</div>' +
+        (placer && pics.length
+          ? '<p class="design-note">' + (pics.length > 1 ? 'Tap a design to put it in the box, then drag it onto the ' + esc(it.one) + '.' : 'Drag it from the box onto the ' + esc(it.one) + '.') + '</p>'
+          : '');
     });
   }
   /* Big photos get shrunk in the browser so every file fits the 5 MB-per-file upload limit.
@@ -1431,60 +1425,47 @@
     const name = outType === 'image/png' ? file.name : file.name.replace(/\.(png|jpe?g|webp)$/i, '') + '.jpg';
     return new File([best], name, { type: outType });
   }
-  async function addFiles(list) {
-    const err = document.getElementById('q-file-error');
+  /* A design picked (or dropped) on one order line */
+  async function addLineFile(row, f) {
+    const err = row.querySelector('.line-err');
     const say = msg => { err.textContent = msg; err.hidden = !msg; };
     say('');
-    let added = [...list];
-    const problems = [];
-    if (FILES.length + added.length > MAX_FILES) {
-      added = added.slice(0, MAX_FILES - FILES.length);
-      problems.push('You can upload up to ' + MAX_FILES + ' files. Email any extras to us after you send.');
-    }
-    const ready = [];
-    for (const f of added) {
-      if (f.size > PICK_LIMIT) { problems.push(f.name + ' is too big to upload. Please email it to us after you send.'); continue; }
+    const id = f.name + '|' + f.size + '|' + f.lastModified;
+    let out = SAME_FILE.get(id);
+    if (!out) {
+      if (FILES.length >= MAX_FILES) return say('You can upload up to ' + MAX_FILES + ' designs. Email any extras to us after you send.');
+      if (f.size > PICK_LIMIT) return say(f.name + ' is too big to upload. Please email it to us after you send.');
       say('Getting ' + f.name + ' ready...');
-      const out = await shrinkImage(f);
-      if (out.size > FILE_LIMIT) { problems.push(f.name + ' is over 5 MB and can\'t be shrunk here. Please email it to us after you send.'); continue; }
-      ready.push(out);
+      out = await shrinkImage(f);
+      if (out.size > FILE_LIMIT) return say(f.name + ' is over 5 MB and can\'t be shrunk here. Please email it to us after you send.');
+      await loadMeta(out);
+      SAME_FILE.set(id, out);
+      say('');
     }
-    say(problems.join(' '));
-    if (!ready.length) return;
-    await Promise.all(ready.map(loadMeta));
-    // A new design goes on each picked item that doesn't have one yet; the customer can change it
-    ready.forEach(f => {
-      const empty = picked().filter(key => !designsFor(key).length);
-      FILES.push(f);
-      GOES_ON.set(f, new Set());
-      empty.forEach(key => setGoesOn(f, key, true));
-    });
+    if (!row.isConnected) return;
+    setLineArt(row, out);
     afterArtChange();
   }
-  const fileInput = document.getElementById('q-files');
-  fileInput.addEventListener('change', () => { addFiles(fileInput.files); fileInput.value = ''; });
-  const drop = document.querySelector('.upload-drop');
-  ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('is-over'); }));
-  ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, () => drop.classList.remove('is-over')));
-  drop.addEventListener('drop', e => { e.preventDefault(); if (e.dataTransfer && e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
-  document.getElementById('q-file-list').addEventListener('click', e => {
-    const chip = e.target.closest('[data-for]');
-    if (chip) {
-      setGoesOn(FILES[+chip.dataset.file], chip.dataset.for, chip.getAttribute('aria-pressed') !== 'true');
-      afterArtChange();
-      const again = document.querySelector('#q-file-list [data-file="' + chip.dataset.file + '"][data-for="' + chip.dataset.for + '"]');
-      if (again) again.focus();
-      return;
-    }
-    const gone = e.target.closest('[data-drop-file]');
-    if (gone) {
-      const f = FILES[+gone.dataset.dropFile];
-      FILES = FILES.filter(x => x !== f);
-      GOES_ON.delete(f);
-      META.delete(f);
-      if (urls.has(f)) { URL.revokeObjectURL(urls.get(f)); urls.delete(f); }
-      afterArtChange();
-    }
+  details.addEventListener('change', e => {
+    if (!e.target.classList.contains('line-art-pick')) return;
+    const row = e.target.closest('.color-row');
+    if (e.target.files[0]) addLineFile(row, e.target.files[0]);
+    e.target.value = '';
+  });
+  details.addEventListener('dragover', e => {
+    const box = e.target.closest && e.target.closest('.line-art');
+    if (box) { e.preventDefault(); box.classList.add('is-over'); }
+  });
+  details.addEventListener('dragleave', e => {
+    const box = e.target.closest && e.target.closest('.line-art');
+    if (box) box.classList.remove('is-over');
+  });
+  details.addEventListener('drop', e => {
+    const box = e.target.closest && e.target.closest('.line-art');
+    if (!box) return;
+    e.preventDefault();
+    box.classList.remove('is-over');
+    if (e.dataTransfer && e.dataTransfer.files.length) addLineFile(box.closest('.color-row'), e.dataTransfer.files[0]);
   });
   const placeBox = (key, place) => form.querySelector('input[name="place-' + key + '"][value="' + CSS.escape(place) + '"]');
   function spotFor(key, t) {
@@ -1694,6 +1675,7 @@
       size.innerHTML = sizeOptions(e.target.value);
       if ([...size.options].some(o => o.value === keep)) size.value = keep;
     }
+    if (row && LINE_ART.has(row)) renderDesignPicks(); // design buttons name their lines
     updateTotals();
   });
   details.addEventListener('click', e => {
@@ -1702,10 +1684,18 @@
     const pick = e.target.closest('[data-tray]');
     if (pick) {
       const key = pick.closest('.item-designs').id.slice(8);
-      TRAY_ART[key] = FILES[+pick.dataset.tray];
+      TRAY_ART[key] = designsFor(key)[+pick.dataset.tray];
       afterArtChange();
       const again = document.querySelector('#designs-' + key + ' [data-tray="' + pick.dataset.tray + '"]');
       if (again) again.focus();
+      return;
+    }
+    const unart = e.target.closest('.line-art-x');
+    if (unart) {
+      const row = unart.closest('.color-row');
+      setLineArt(row, null);
+      afterArtChange();
+      row.querySelector('.line-art-pick').focus();
       return;
     }
     const btn = e.target.closest('.tool');
@@ -1715,9 +1705,12 @@
     const rm = e.target.closest('.remove-color');
     if (rm) {
       const it = ITEM[rm.closest('.color-rows').id.slice(7)];
-      rm.closest('.color-row').remove();
+      const row = rm.closest('.color-row');
+      LINE_ART.delete(row);
+      row.remove();
       updateRemoveButtons(it);
       tintGarment(it.key);
+      afterArtChange();
       updateTotals();
     }
   });
@@ -1735,14 +1728,9 @@
     const items = picked();
     ITEMS.forEach(it => { document.getElementById('card-' + it.key).hidden = !items.includes(it.key); });
     details.hidden = items.length === 0;
-    renderFileList();
-    renderDesignPicks();
+    syncFiles(); // designs on items that were un-picked aren't sent
   }
-  form.querySelectorAll('input[name="items"]').forEach(c => c.addEventListener('change', () => {
-    // With just one design uploaded, a newly picked item gets it too
-    if (c.checked && FILES.length === 1 && !designsFor(c.value).length) { setGoesOn(FILES[0], c.value, true); afterArtChange(); }
-    updateItem();
-  }));
+  form.querySelectorAll('input[name="items"]').forEach(c => c.addEventListener('change', updateItem));
   form.addEventListener('change', e => { if (/^(method|material)-/.test(e.target.name || '')) updateWarn(); });
   updateItem();
   updateTotals();
@@ -1769,13 +1757,12 @@
       if (extra) lines.push(it.extra.label.replace(' (optional)', '') + ': ' + extra);
       lineList(it).forEach(l => {
         const what = [l.color || 'Color not picked', l.style, [l.fit, l.size].filter(Boolean).join(' ')].filter(Boolean).join(', ');
-        lines.push('  - ' + l.qty + ' x ' + what);
+        lines.push('  - ' + l.qty + ' x ' + what + (l.design ? ' (design: ' + l.design + ')' : ''));
       });
       const places = DIAGRAMS[it.key]
         ? (TIKIS[it.key] || []).filter(t => t.view).map(t => tikiLabel(it.key, t) + (designOf(t) ? ': ' + designOf(t) : '') + ' (' + sizeLabel(it.key, t) + ')')
         : [...form.querySelectorAll('input[name="place-' + it.key + '"]:checked')].map(c => c.value);
       const notes = document.getElementById('notes-' + it.key).value.trim();
-      if (FILES.length) lines.push('Design: ' + (designsFor(it.key).map(f => f.name).join(', ') || 'none picked'));
       lines.push('Print on: ' + (places.join(', ') || 'not sure yet'));
       lines.push('Print method: ' + val('method-' + it.key));
       if (it.material) lines.push('Material: ' + val('material-' + it.key));
