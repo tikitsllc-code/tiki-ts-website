@@ -1170,7 +1170,7 @@
       (it.extra ? '<div class="field"><label for="extra-' + it.key + '">' + escT(it.extra.label) + '</label>' +
         '<input id="extra-' + it.key + '" placeholder="' + escT(it.extra.ph) + '"></div>' : '') +
       '<fieldset class="group"><legend>' + escT(it.sized ? txt(FORM.linesQuestionSized, 'What do you need? Add one line for each color and size.') : txt(FORM.linesQuestion, 'What do you need? Add one line for each color.')) + '</legend>' +
-        (it.sized ? '<p class="hint">' + escT(txt(FORM.sizesHint, 'Example: 2 black men\'s L on one line, 3 white women\'s M on the next, 1 orange kids S on the next. Kids sizes are youth sizes.')) + (CONTENT.sizeChart ? ' <a href="#faq">' + escT(txt(FORM.sizeChartLink, 'See the size chart')) + '</a>.' : '') + '</p>' : '') +
+        (it.sized && CONTENT.sizeChart ? '<p class="hint"><a href="#faq">' + escT(txt(FORM.sizeChartLink, 'See the size chart')) + '</a></p>' : '') +
         '<p class="hint">' + escT(txt(FORM.lineDesignHint, 'Got a design? Tap the + in the Design box on a line to add the picture for those ' + it.one + 's. Each line can have its own design.')) + '</p>' +
         '<div class="color-rows' + (it.sized ? ' sized' : '') + '" id="colors-' + it.key + '" style="--cols: auto minmax(0, 1.5fr)' +
           (it.styles.length ? ' minmax(0, 1.1fr)' : '') + (it.sized ? ' minmax(0, 1fr) minmax(0, 0.8fr)' : '') + ' 88px 62px auto"></div>' +
