@@ -346,7 +346,7 @@
     display: grid; place-items: center; font: 900 0.7rem/1 var(--body); color: var(--ink-soft);
   }
   .timing-note {
-    margin: 0; align-self: end;
+    margin: 0; grid-column: 1 / -1; justify-self: center; max-width: 560px; text-align: center;
     background: var(--sky-pale); border-radius: 10px; padding: 10px 12px;
     font-size: 0.88rem; line-height: 1.45; color: var(--ink-soft);
   }
@@ -601,16 +601,6 @@
           <label for="q-phone" data-c="form.contactLabel">Phone or email</label>
           <input id="q-phone" name="contact" required>
         </div>
-        <div class="field">
-          <label for="q-type" data-c="form.purposeLabel">What's it for?</label>
-          <select id="q-type" name="type">
-            <option>Personal / gift</option>
-            <option>Business or brand</option>
-            <option>Team or club</option>
-            <option>Event or reunion</option>
-            <option>Something else</option>
-          </select>
-        </div>
         <p class="timing-note"><b data-c="quote.timingLabel">About timing:</b> <span data-c="quote.timingNote">how long an order takes depends on how busy we are. We'll let you know when yours can be ready when we send your quote.</span></p>
 
         <fieldset class="field full group">
@@ -836,12 +826,6 @@
     box.innerHTML = '<span class="who">Follow us</span>' + socialLinks.map(([u, label]) =>
       '<a class="social" href="' + escT(u) + '" target="_blank" rel="noopener">' + label + '</a>').join('');
     box.hidden = false;
-  }
-
-  if (Array.isArray(CONTENT.purposes) && CONTENT.purposes.length) {
-    const sel = document.getElementById('q-type');
-    sel.innerHTML = '';
-    CONTENT.purposes.forEach(p => { const o = document.createElement('option'); o.textContent = p; sel.appendChild(o); });
   }
 
   document.getElementById('yr').textContent = new Date().getFullYear();
@@ -1326,7 +1310,6 @@
       '',
       'Name: ' + f.name.trim(),
       'Reach me at: ' + f.contact.trim(),
-      'For: ' + f.type,
       'Artwork: ' + f.art
     ];
     chosen.forEach(it => {
@@ -1346,7 +1329,6 @@
     const order = {
       name: f.name.trim(),
       contact: f.contact.trim(),
-      purpose: f.type,
       artwork: f.art,
       items: chosen.map(it => ({
         product: it.label,
