@@ -296,7 +296,7 @@
 
   function itemHtml(it) {
     const lines = (it.lines || []).map(l =>
-      '<tr><td class="qty">' + esc(l.qty) + '</td><td>' + esc(l.color || '-') + '</td><td>' + esc(l.style || '') + '</td><td>' + esc([l.fit, l.size].filter(Boolean).join(' ')) + '</td></tr>').join('');
+      '<tr><td class="qty">' + esc(l.qty) + '</td><td>' + esc(l.color || '-') + (l.design ? '<br><small>Design: ' + esc(l.design) + '</small>' : '') + '</td><td>' + esc(l.style || '') + '</td><td>' + esc([l.fit, l.size].filter(Boolean).join(' ')) + '</td></tr>').join('');
     const places = (it.placements || []).map(p => '<li>' + esc(p.spot) + (p.design ? ': <b>' + esc(p.design) + '</b>' : '') + (p.size ? ' <span style="color:var(--soft)">(' + esc(p.size) + ')</span>' : '') + '</li>').join('');
     const kv = [
       (it.designs || []).length ? ['Design', esc(it.designs.join(', '))] : null,
