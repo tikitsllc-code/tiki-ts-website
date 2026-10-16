@@ -290,6 +290,10 @@
   }
   .print-guide p { margin: 0; font-weight: 800; font-size: 0.95rem; line-height: 1.45; }
   .print-guide .pg-name { color: var(--hibiscus); }
+  .where-note {
+    margin: 0; font-weight: 800; font-size: 0.95rem;
+    background: #fff4b8; border: 2px solid var(--ink); border-left: 6px solid var(--hibiscus); border-radius: 12px; padding: 10px 14px;
+  }
   /* Starting prices */
   .pricing { margin-top: 40px; }
   .pricing-title { margin: 0 0 14px; font: 400 1.8rem/1.1 var(--display); }
@@ -1024,6 +1028,10 @@
           : '') +
         '<span class="color-sum">' + escT(it.label) + ' total: <strong id="csum-' + it.key + '">0</strong></span></div>' +
       '</fieldset>' +
+      '<p class="where-note">Please tell us where you want your print to go. ' +
+        (it.picture === 'cup' ? 'For example: one side, both sides, or a full wrap.'
+          : it.picture === 'bag' ? 'For example: front, back, or both sides.'
+          : 'For example: front center, back, left chest, or sleeve.') + '</p>' +
       '<div class="field"><label for="notes-' + it.key + '">' + escT(txt(FORM.detailsLabel, 'Design details for')) + ' ' + escT(it.label.toLowerCase()) + '</label>' +
         '<textarea id="notes-' + it.key + '" placeholder="' + escT(it.notesPh) + '"></textarea></div>' +
     '</section>'
