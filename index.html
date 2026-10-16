@@ -416,12 +416,14 @@
   .color-row .field { gap: 4px; }
   .color-row .cother { margin-top: 6px; }
   .color-row .cqty-field label { white-space: nowrap; }
+  /* Line boxes are narrow: trim the side padding and center the words so they fit */
+  .color-row select, .color-row .cqty { padding-left: 4px; padding-right: 2px; text-align: center; text-align-last: center; }
   .dot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--ink); margin-bottom: 9px; }
   .dot-empty { border-style: dashed; border-color: #b9ae93; }
   .remove-color {
     font: 800 0.85rem/1 var(--body); color: var(--ink-soft);
     background: transparent; border: 2px solid #cfc4a8; border-radius: 10px;
-    padding: 12px 12px; cursor: pointer;
+    padding: 12px 8px; cursor: pointer;
   }
   .remove-color:hover { border-color: var(--hibiscus); color: var(--hibiscus); }
   .color-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -1209,7 +1211,7 @@
     row.innerHTML =
       '<span class="dot dot-empty" aria-hidden="true"></span>' +
       '<div class="field cname-field"><label for="cname-' + n + '">Color</label>' +
-        '<select id="cname-' + n + '" class="cname"><option value="">Pick a color</option>' +
+        '<select id="cname-' + n + '" class="cname"><option value="">Pick one</option>' +
         colorsFor(it).map(c => '<option>' + escT(c.name) + '</option>').join('') + '<option value="other">' + escT(txt(FORM.otherColor, 'Other color')) + '</option></select>' +
         '<input class="cother" id="cother-' + n + '" placeholder="Which color?" aria-label="Which color?" hidden></div>' +
       (it.styles.length
@@ -1352,7 +1354,7 @@
     const v = c => { const el = row.querySelector(c); return el && el.value ? el.options ? el.options[el.selectedIndex].text : el.value : ''; };
     const color = v('.cname') === 'Other color' ? (row.querySelector('.cother').value.trim() || 'Other color') : v('.cname');
     return [color, v('.cstyle'), [v('.cfit'), v('.csize')].filter(x => x && x !== 'Fit' && x !== 'Size').join(' ')]
-      .filter(x => x && x !== 'Pick a color' && x !== 'Style').join(', ') || 'Line ' + (rowsOf(row.closest('.color-rows').id.slice(7)).indexOf(row) + 1);
+      .filter(x => x && x !== 'Pick one' && x !== 'Style').join(', ') || 'Line ' + (rowsOf(row.closest('.color-rows').id.slice(7)).indexOf(row) + 1);
   };
   /* The little Design box on each line */
   function renderLineArt(row) {
