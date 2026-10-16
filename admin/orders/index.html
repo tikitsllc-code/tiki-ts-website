@@ -374,7 +374,7 @@
       '<div class="order-body">' +
         '<div class="facts">' +
           '<div class="fact"><small>Contact</small><span>' + esc(o.contact) + '</span></div>' +
-          '<div class="fact"><small>What it\'s for</small><span>' + esc(o.purpose || '-') + '</span></div>' +
+          (o.purpose ? '<div class="fact"><small>What it\'s for</small><span>' + esc(o.purpose) + '</span></div>' : '') + // older orders only
           '<div class="fact"><small>Artwork</small><span>' + esc(o.artwork || '-') + '</span></div>' +
         '</div>' +
         priceHtml(o) +
