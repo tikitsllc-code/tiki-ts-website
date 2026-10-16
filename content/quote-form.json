@@ -25,7 +25,7 @@
     "itemsQuestion": "What do you want printed? Pick all that apply.",
     "itemsHint": "Each item you pick gets its own section below for sizes, colors and print details.",
     "uploadLabel": "Upload your design (optional)",
-    "uploadHint": "Logos, photos, sketches or examples you like. Up to 5 files. Big photos are shrunk automatically so they send. If you upload a picture, it shows up on the shirt below so you can drag it where you want it.",
+    "uploadHint": "Logos, photos, sketches or examples you like. Up to 5 files. Big photos are shrunk automatically so they send. Under each file, tap what it goes on (shirts, hoodies, cups...), then drag it where you want it on the picture below.",
     "linesQuestionSized": "What do you need? Add one line for each color and size.",
     "linesQuestion": "What do you need? Add one line for each color.",
     "sizesHint": "Example: 2 black men's L on one line, 3 white women's M on the next, 1 orange kids S on the next. Kids sizes are youth sizes.",
