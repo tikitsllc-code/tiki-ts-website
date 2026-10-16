@@ -253,12 +253,12 @@
   // byText = the shorter version for a text message
   const priceMessage = (o, byText) => byText
     ? 'Hello ' + firstName(o.name) + ', this is Tiki T\'s. Your quote for ' + orderWhat(o) + ' is ready: ' + o.quote.price + (o.quote.taxCents ? ' including tax' : '') + '.' + (o.quote.note ? ' ' + o.quote.note : '') + '\n\n' +
-      'View your mockup and approve your order here:\n' + quoteLink(o) + '\n\n' +
+      'View and approve your order here:\n' + quoteLink(o) + '\n\n' +
       'Reply to this text with any questions. Thank you!'
     : 'Hello ' + firstName(o.name) + ',\n\n' +
       'Thank you for choosing Tiki T\'s. We\'ve reviewed your request for ' + orderWhat(o) + ', and your quote is ready.\n\n' +
       'Quote total: ' + o.quote.price + (o.quote.taxCents ? ' (' + money(o.quote.subtotalCents) + ' + ' + money(o.quote.taxCents) + ' Florida sales tax)' : '') + (o.quote.note ? '\nNotes: ' + o.quote.note : '') + '\n\n' +
-      'To view your order details and design mockup, and to approve your order, please visit:\n' + quoteLink(o) + '\n\n' +
+      'To view your order details and approve your order, please visit:\n' + quoteLink(o) + '\n\n' +
       'Production begins once your order is approved and payment is received. If you have any questions or would like to make changes, simply reply to this email.\n\n' +
       'Thank you for your business,\nTiki T\'s\nCustom Apparel & Printing\n927 S Ridgewood Ave, Edgewater, FL 32132\ntikitsllc@gmail.com\ntikitsllc.com';
 
@@ -335,7 +335,7 @@
     const mock = mockupFor(o, it);
     const places = (it.placements || []).map(p => '<li>' + esc(p.spot) + (p.design ? ': <b>' + esc(p.design) + '</b>' : '') + (p.size ? ' <span style="color:var(--soft)">(' + esc(p.size) + ')</span>' : '') + '</li>').join('');
     const kv = [
-      ['Print on', places ? '<ul>' + places + '</ul>' : 'Not sure yet'],
+      places ? ['Print on', '<ul>' + places + '</ul>'] : null, // older orders only; the form no longer asks
       it.material ? ['Material', esc(it.material)] : null,
       it.extra && it.extra.answer ? [esc(it.extra.question), esc(it.extra.answer)] : null,
       it.notes ? ['Design details', esc(it.notes)] : null
