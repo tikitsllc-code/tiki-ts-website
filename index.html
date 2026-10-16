@@ -284,6 +284,12 @@
     margin: 0; font: 400 1.6rem/1 var(--display); color: var(--ink);
     padding-bottom: 12px; border-bottom: 3px solid var(--teal);
   }
+  .print-guide {
+    display: grid; gap: 8px;
+    background: #fff; border: 2px solid var(--ink); border-left: 6px solid var(--hibiscus); border-radius: 12px; padding: 12px 14px;
+  }
+  .print-guide p { margin: 0; font-weight: 800; font-size: 0.95rem; line-height: 1.45; }
+  .print-guide .pg-name { color: var(--hibiscus); }
   .checks { display: flex; flex-wrap: wrap; gap: 8px; }
   .check {
     display: inline-flex; align-items: center; gap: 8px;
@@ -1148,9 +1154,18 @@
       '</div></div>';
   }
 
+  /* DTF vs Dye sub, shown under the title of each fabric item so customers can pick the Print on each line */
+  const PRINT_GUIDE =
+    '<div class="print-guide">' +
+      '<p><span class="pg-name">DTF (direct to film):</span> Your design is printed on a film and heat-pressed on. ' +
+        'Works on cotton, polyester and blends, in any color, dark ones too. Best for cotton and dark colors.</p>' +
+      '<p><span class="pg-name">Dye sub (dye sublimation):</span> The ink dyes right into the fabric, so it never cracks or peels and you can\'t feel it. ' +
+        'Only works on polyester (100% or high-poly blends) in white or light colors. Not for cotton.</p>' +
+    '</div>';
   document.getElementById('item-details').innerHTML = ITEMS.map(it =>
     '<section class="item-card" id="card-' + it.key + '" hidden aria-labelledby="title-' + it.key + '">' +
       '<h3 class="item-title" id="title-' + it.key + '">' + escT(it.label) + '</h3>' +
+      (it.picture !== 'cup' ? PRINT_GUIDE : '') +
       (it.extra ? '<div class="field"><label for="extra-' + it.key + '">' + escT(it.extra.label) + '</label>' +
         '<input id="extra-' + it.key + '" placeholder="' + escT(it.extra.ph) + '"></div>' : '') +
       '<fieldset class="group"><legend>' + escT(it.sized ? txt(FORM.linesQuestionSized, 'What do you need? Add one line for each color and size.') : txt(FORM.linesQuestion, 'What do you need? Add one line for each color.')) + '</legend>' +
