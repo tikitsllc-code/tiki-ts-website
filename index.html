@@ -268,7 +268,6 @@
   .option input { width: auto; margin: 3px 0 0; accent-color: var(--hibiscus); flex: none; }
   .option b { display: block; font-weight: 900; font-size: 0.98rem; }
   .option small { display: block; font-size: 0.86rem; line-height: 1.45; color: var(--ink-soft); margin-top: 3px; }
-  .warn { margin: 0; background: #ffe0ef; border: 2px solid var(--hibiscus); border-radius: 10px; padding: 10px 12px; font-weight: 800; font-size: 0.9rem; }
   .options.items { grid-template-columns: repeat(4, 1fr); }
   .options.items .option { align-items: center; }
   .options.items .option input { margin: 0; width: 18px; height: 18px; }
@@ -946,10 +945,6 @@
       cardTitle: 'Cups & tumblers', cardText: 'Your name, logo or design on a cup or tumbler. Easy gifts that people use every day.',
       detailsPlaceholder: 'Names on each cup, photo, logo, colors...' }
   ];
-  const DEFAULT_MATERIALS = [
-    { name: 'Cotton', description: 'Soft, breathable, classic feel.' },
-    { name: 'Polyester', description: 'Lightweight, dries fast, holds its shape. Needed for sublimation.' }
-  ];
   const strList = v => Array.isArray(v) ? v.map(x => String(x == null ? '' : x).trim()).filter(Boolean) : [];
   const colorList = v => (Array.isArray(v) ? v : []).filter(c => c && c.name).map(c => ({ name: String(c.name), hex: c.hex || '#ffffff' }));
   const COLORS = colorList(CONTENT.colors).length ? colorList(CONTENT.colors) : DEFAULT_COLORS;
@@ -964,7 +959,6 @@
     one: String(it.singular || it.name).toLowerCase(),
     picture: ['tshirt', 'hoodie', 'bag', 'cup'].includes(it.picture) ? it.picture : 'none',
     sized: !!it.hasSizes,
-    material: !!it.hasMaterial,
     places: strList(it.printSpots).length ? strList(it.printSpots) : ['Front', 'Back'],
     colors: colorList(it.colors),
     extra: it.styleLabel ? { label: String(it.styleLabel), ph: String(it.stylePlaceholder || '') } : null,
@@ -975,13 +969,8 @@
     onCard: it.showCard !== false
   }));
   const colorsFor = it => it.colors.length ? it.colors : COLORS;
-  const optionList = (key, fallback) => {
-    const got = listOf(key).filter(o => o.name);
-    return (got.length ? got : fallback).map(o => ({ value: String(o.name), title: String(o.name), desc: String(o.description || '') }));
-  };
   const FORM = CONTENT.form || {};
   const txt = (v, fallback) => (typeof v === 'string' && v.trim()) ? v : fallback;
-  const MATERIALS = optionList('materialOptions', DEFAULT_MATERIALS).concat([{ value: 'Not sure, recommend one', title: txt(FORM.notSureTitle, 'Not sure'), desc: txt(FORM.notSureMaterial, "We'll help you choose.") }]);
   const LEGACY_KIND = { Tee: 'tshirt', Hoodie: 'hoodie', Bag: 'bag', Cup: 'cup' };
   const itemForKind = kind => ITEMS.find(i => i.label === kind) || ITEMS.find(i => i.picture === LEGACY_KIND[kind]) || null;
 
@@ -1158,9 +1147,6 @@
         '<p class="placer-summary" aria-live="polite"></p>' +
       '</div></div>';
   }
-  const radios = (name, list) => '<div class="options">' + list.map((o, i) =>
-    '<label class="option" for="' + name + '-' + i + '"><input type="radio" id="' + name + '-' + i + '" name="' + name + '" value="' + escT(o.value) + '"' + (i === 0 ? ' checked' : '') + '>' +
-    '<span><b>' + escT(o.title) + '</b>' + (o.desc ? '<small>' + escT(o.desc) + '</small>' : '') + '</span></label>').join('') + '</div>';
 
   document.getElementById('item-details').innerHTML = ITEMS.map(it =>
     '<section class="item-card" id="card-' + it.key + '" hidden aria-labelledby="title-' + it.key + '">' +
@@ -1187,10 +1173,6 @@
         (DIAGRAMS[it.key] ? placeDiagram(it) : '') + '<div class="checks">' +
         it.places.map((p, i) => '<label class="check" for="place-' + it.key + '-' + i + '"><input type="checkbox" id="place-' + it.key + '-' + i + '" name="place-' + it.key + '" value="' + escT(p) + '">' + escT(p) + '</label>').join('') +
       '</div></fieldset>' +
-      (it.material
-        ? '<fieldset class="group"><legend>' + escT(txt(FORM.materialLabel, 'Material')) + '</legend>' + radios('material-' + it.key, MATERIALS) +
-          '<p class="warn" id="warn-' + it.key + '" hidden>' + escT(txt(FORM.sublimationWarning, 'Dye sublimation doesn\'t work on cotton. Pick polyester, or switch to DTF.')) + '</p></fieldset>'
-        : '') +
       '<div class="field"><label for="notes-' + it.key + '">' + escT(txt(FORM.detailsLabel, 'Design details for')) + ' ' + escT(it.label.toLowerCase()) + '</label>' +
         '<textarea id="notes-' + it.key + '" placeholder="' + escT(it.notesPh) + '"></textarea></div>' +
     '</section>'
@@ -1744,19 +1726,11 @@
       tintGarment(it.key);
       afterArtChange();
       updateTotals();
-      updateWarn();
     }
   });
   ITEMS.forEach(it => { addColorRow(it); tintGarment(it.key); if (DIAGRAMS[it.key]) renderTikis(it.key); });
 
   const picked = () => [...form.querySelectorAll('input[name="items"]:checked')].map(c => c.value);
-  const val = name => { const r = form.querySelector('input[name="' + name + '"]:checked'); return r ? r.value : ''; };
-  function updateWarn() {
-    ITEMS.filter(it => it.material).forEach(it => {
-      document.getElementById('warn-' + it.key).hidden =
-        !(rowsOf(it.key).some(r => /dye sub/i.test(r.querySelector('.cprint').value)) && /cotton/i.test(val('material-' + it.key)));
-    });
-  }
   function updateItem() {
     const items = picked();
     ITEMS.forEach(it => { document.getElementById('card-' + it.key).hidden = !items.includes(it.key); });
@@ -1785,10 +1759,8 @@
     const tray = target.querySelector('.tray-tiki');
     if (tray) tray.focus({ preventScroll: true });
   }
-  form.addEventListener('change', e => { if (/^material-/.test(e.target.name || '') || e.target.classList.contains('cprint')) updateWarn(); });
   updateItem();
   updateTotals();
-  updateWarn();
 
   form.addEventListener('submit', e => {
     e.preventDefault();
@@ -1818,7 +1790,6 @@
         : [...form.querySelectorAll('input[name="place-' + it.key + '"]:checked')].map(c => c.value);
       const notes = document.getElementById('notes-' + it.key).value.trim();
       lines.push('Print on: ' + (places.join(', ') || 'not sure yet'));
-      if (it.material) lines.push('Material: ' + val('material-' + it.key));
       if (notes) lines.push('Details: ' + notes);
     });
     if (FILES.length) lines.push('', 'Artwork uploaded: ' + FILES.map(f => f.name).join(', '));
@@ -1839,7 +1810,6 @@
           ? (TIKIS[it.key] || []).filter(t => t.view).map(t => ({ spot: tikiLabel(it.key, t), side: t.view, size: sizeLabel(it.key, t), design: designOf(t) }))
           : [...form.querySelectorAll('input[name="place-' + it.key + '"]:checked')].map(c => ({ spot: c.value })),
         method: [...new Set(lineList(it).map(l => l.print).filter(Boolean))].join(', '), // summary of the per-line prints
-        material: it.material ? val('material-' + it.key) : '',
         notes: document.getElementById('notes-' + it.key).value.trim()
       })),
       files: FILES.map(file => file.name),
