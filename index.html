@@ -415,6 +415,7 @@
   }
   .color-row .field { gap: 4px; }
   .color-row .cother { margin-top: 6px; }
+  .color-row .cqty-field label { white-space: nowrap; }
   .dot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--ink); margin-bottom: 9px; }
   .dot-empty { border-style: dashed; border-color: #b9ae93; }
   .remove-color {
@@ -446,7 +447,7 @@
   @keyframes arrive { 0% { box-shadow: 0 0 0 6px var(--sun); } 100% { box-shadow: 0 0 0 0 transparent; } }
   @media (prefers-reduced-motion: reduce) { .item-card.is-arrived { animation: none; } }
   .color-sum strong { color: var(--hibiscus); font-size: 1.1rem; }
-  .color-rows.sized .color-row { grid-template-columns: auto minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 0.8fr) 88px 62px auto; }
+  .color-rows.sized .color-row { grid-template-columns: auto minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 0.8fr) 72px 108px 62px auto; }
   .color-rows[style] .color-row { grid-template-columns: var(--cols); }
   /* The little Design box on each line */
   .line-art { position: relative; width: 62px; height: 48px; }
@@ -943,10 +944,6 @@
       cardTitle: 'Cups & tumblers', cardText: 'Your name, logo or design on a cup or tumbler. Easy gifts that people use every day.',
       detailsPlaceholder: 'Names on each cup, photo, logo, colors...' }
   ];
-  const DEFAULT_METHODS = [
-    { name: 'DTF (direct to film)', description: 'Design is printed on film and heat-pressed on. Works on most fabrics and any color, dark ones too.' },
-    { name: 'Dye sublimation', description: "Ink dyes right into the surface, so it never cracks or peels and you can't feel it. Needs polyester in white or light colors." }
-  ];
   const DEFAULT_MATERIALS = [
     { name: 'Cotton', description: 'Soft, breathable, classic feel.' },
     { name: 'Polyester', description: 'Lightweight, dries fast, holds its shape. Needed for sublimation.' }
@@ -982,7 +979,6 @@
   };
   const FORM = CONTENT.form || {};
   const txt = (v, fallback) => (typeof v === 'string' && v.trim()) ? v : fallback;
-  const METHODS = optionList('methods', DEFAULT_METHODS).concat([{ value: 'Not sure, recommend one', title: txt(FORM.notSureTitle, 'Not sure'), desc: txt(FORM.notSureMethod, "We'll pick the best one for your design.") }]);
   const MATERIALS = optionList('materialOptions', DEFAULT_MATERIALS).concat([{ value: 'Not sure, recommend one', title: txt(FORM.notSureTitle, 'Not sure'), desc: txt(FORM.notSureMaterial, "We'll help you choose.") }]);
   const LEGACY_KIND = { Tee: 'tshirt', Hoodie: 'hoodie', Bag: 'bag', Cup: 'cup' };
   const itemForKind = kind => ITEMS.find(i => i.label === kind) || ITEMS.find(i => i.picture === LEGACY_KIND[kind]) || null;
@@ -1173,7 +1169,7 @@
         (it.sized && CONTENT.sizeChart ? '<p class="hint"><a href="#faq">' + escT(txt(FORM.sizeChartLink, 'See the size chart')) + '</a></p>' : '') +
         '<p class="hint">' + escT(txt(FORM.lineDesignHint, 'Got a design? Tap the + in the Design box on a line to add the picture for those ' + it.one + 's. Each line can have its own design.')) + '</p>' +
         '<div class="color-rows' + (it.sized ? ' sized' : '') + '" id="colors-' + it.key + '" style="--cols: auto minmax(0, 1.5fr)' +
-          (it.styles.length ? ' minmax(0, 1.1fr)' : '') + (it.sized ? ' minmax(0, 1fr) minmax(0, 0.8fr)' : '') + ' 88px 62px auto"></div>' +
+          (it.styles.length ? ' minmax(0, 1.1fr)' : '') + (it.sized ? ' minmax(0, 1fr) minmax(0, 0.8fr)' : '') + ' 72px 108px 62px auto"></div>' +
         '<div class="color-foot"><button type="button" class="add-color" data-item="' + it.key + '">' + escT(txt(FORM.addLine, '+ Add another line')) + '</button>' +
         (ITEMS.length > 1
           ? '<div class="also-on" role="group" aria-label="Put your design on something else too"><span class="also-label">' + escT(txt(FORM.alsoOnLabel, 'Also put it on:')) + '</span>' +
@@ -1189,7 +1185,6 @@
         (DIAGRAMS[it.key] ? placeDiagram(it) : '') + '<div class="checks">' +
         it.places.map((p, i) => '<label class="check" for="place-' + it.key + '-' + i + '"><input type="checkbox" id="place-' + it.key + '-' + i + '" name="place-' + it.key + '" value="' + escT(p) + '">' + escT(p) + '</label>').join('') +
       '</div></fieldset>' +
-      '<fieldset class="group"><legend>' + escT(txt(FORM.methodLabel, 'Print method')) + '</legend>' + radios('method-' + it.key, METHODS) + '</fieldset>' +
       (it.material
         ? '<fieldset class="group"><legend>' + escT(txt(FORM.materialLabel, 'Material')) + '</legend>' + radios('material-' + it.key, MATERIALS) +
           '<p class="warn" id="warn-' + it.key + '" hidden>' + escT(txt(FORM.sublimationWarning, 'Dye sublimation doesn\'t work on cotton. Pick polyester, or switch to DTF.')) + '</p></fieldset>'
@@ -1199,8 +1194,9 @@
     '</section>'
   ).join('');
 
-  /* Order lines: [dot] [color] [fit] [size] [how many] [remove] */
+  /* Order lines: [dot] [color] [fit] [size] [how many] [print] [design] [remove] */
   const ITEM = Object.fromEntries(ITEMS.map(it => [it.key, it]));
+  const LINE_PRINTS = ['DTF', 'Dye sub'];
   let rowSeq = 0;
   const sizeOptions = fitKey => {
     const fit = FITS.find(f => f.key === fitKey);
@@ -1227,6 +1223,8 @@
         : '') +
       '<div class="field cqty-field"><label for="cqty-' + n + '">How many?</label>' +
         '<input class="cqty" id="cqty-' + n + '" type="number" min="1" inputmode="numeric" placeholder="0"></div>' +
+      '<div class="field cprint-field"><label for="cprint-' + n + '">Print</label><select id="cprint-' + n + '" class="cprint"><option value="">Pick one</option>' +
+        LINE_PRINTS.map(p => '<option>' + escT(p) + '</option>').join('') + '</select></div>' +
       '<div class="field cart-field"><label for="cart-' + n + '">' + escT(txt(FORM.lineDesignLabel, 'Design')) + '</label>' +
         '<div class="line-art">' +
           '<label class="line-art-box"><input type="file" class="line-art-pick" id="cart-' + n + '" accept="image/*,.pdf,.ai,.eps,.svg,.psd"><span class="line-art-face"></span></label>' +
@@ -1264,6 +1262,7 @@
       fit: fit ? fit.label : '',
       size: sizeSel ? sizeSel.value : '',
       qty: num(r.querySelector('.cqty').value),
+      print: r.querySelector('.cprint').value,
       design: LINE_ART.has(r) ? LINE_ART.get(r).name : ''
     };
   }).filter(l => l.qty > 0);
@@ -1743,6 +1742,7 @@
       tintGarment(it.key);
       afterArtChange();
       updateTotals();
+      updateWarn();
     }
   });
   ITEMS.forEach(it => { addColorRow(it); tintGarment(it.key); if (DIAGRAMS[it.key]) renderTikis(it.key); });
@@ -1752,7 +1752,7 @@
   function updateWarn() {
     ITEMS.filter(it => it.material).forEach(it => {
       document.getElementById('warn-' + it.key).hidden =
-        !(/sublimation/i.test(val('method-' + it.key)) && /cotton/i.test(val('material-' + it.key)));
+        !(rowsOf(it.key).some(r => /dye sub/i.test(r.querySelector('.cprint').value)) && /cotton/i.test(val('material-' + it.key)));
     });
   }
   function updateItem() {
@@ -1783,7 +1783,7 @@
     const tray = target.querySelector('.tray-tiki');
     if (tray) tray.focus({ preventScroll: true });
   }
-  form.addEventListener('change', e => { if (/^(method|material)-/.test(e.target.name || '')) updateWarn(); });
+  form.addEventListener('change', e => { if (/^material-/.test(e.target.name || '') || e.target.classList.contains('cprint')) updateWarn(); });
   updateItem();
   updateTotals();
   updateWarn();
@@ -1809,14 +1809,13 @@
       if (extra) lines.push(it.extra.label.replace(' (optional)', '') + ': ' + extra);
       lineList(it).forEach(l => {
         const what = [l.color || 'Color not picked', l.style, [l.fit, l.size].filter(Boolean).join(' ')].filter(Boolean).join(', ');
-        lines.push('  - ' + l.qty + ' x ' + what + (l.design ? ' (design: ' + l.design + ')' : ''));
+        lines.push('  - ' + l.qty + ' x ' + what + (l.print ? ' [' + l.print + ']' : '') + (l.design ? ' (design: ' + l.design + ')' : ''));
       });
       const places = DIAGRAMS[it.key]
         ? (TIKIS[it.key] || []).filter(t => t.view).map(t => tikiLabel(it.key, t) + (designOf(t) ? ': ' + designOf(t) : '') + ' (' + sizeLabel(it.key, t) + ')')
         : [...form.querySelectorAll('input[name="place-' + it.key + '"]:checked')].map(c => c.value);
       const notes = document.getElementById('notes-' + it.key).value.trim();
       lines.push('Print on: ' + (places.join(', ') || 'not sure yet'));
-      lines.push('Print method: ' + val('method-' + it.key));
       if (it.material) lines.push('Material: ' + val('material-' + it.key));
       if (notes) lines.push('Details: ' + notes);
     });
@@ -1837,7 +1836,7 @@
         placements: DIAGRAMS[it.key]
           ? (TIKIS[it.key] || []).filter(t => t.view).map(t => ({ spot: tikiLabel(it.key, t), side: t.view, size: sizeLabel(it.key, t), design: designOf(t) }))
           : [...form.querySelectorAll('input[name="place-' + it.key + '"]:checked')].map(c => ({ spot: c.value })),
-        method: val('method-' + it.key),
+        method: [...new Set(lineList(it).map(l => l.print).filter(Boolean))].join(', '), // summary of the per-line prints
         material: it.material ? val('material-' + it.key) : '',
         notes: document.getElementById('notes-' + it.key).value.trim()
       })),
