@@ -290,56 +290,6 @@
   }
   .print-guide p { margin: 0; font-weight: 800; font-size: 0.95rem; line-height: 1.45; }
   .print-guide .pg-name { color: var(--hibiscus); }
-  .checks { display: flex; flex-wrap: wrap; gap: 8px; }
-  .check {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: #fff; border: 2px solid var(--ink); border-radius: 999px;
-    padding: 8px 14px; cursor: pointer; font-weight: 800; font-size: 0.9rem;
-  }
-  .check:has(input:checked) { background: var(--sun); }
-  .check input { width: 16px; height: 16px; margin: 0; accent-color: var(--hibiscus); }
-  /* Tap-to-place print picker */
-  .placer { background: #fff; border: 2px solid var(--ink); border-radius: 12px; padding: 10px 10px 4px; }
-  .placer svg { display: block; width: 100%; max-width: 560px; height: auto; margin: 0 auto; overflow: visible; }
-  .garment { fill: var(--garment, #fff); stroke: #141414; stroke-width: 1.4; stroke-linejoin: round; transition: fill .2s; }
-  .spot { cursor: pointer; outline: none; }
-  .spot-box { fill: rgba(255, 255, 255, .55); stroke: var(--hibiscus); stroke-width: .7; stroke-dasharray: 2 1.3; transition: fill .15s; }
-  .spot:hover .spot-box { fill: rgba(245, 214, 41, .6); stroke-width: 1; }
-  .spot:focus-visible .spot-box { stroke: #141414; stroke-width: 1.2; stroke-dasharray: none; }
-  .spot[aria-checked="true"] .spot-box { fill: rgba(245, 214, 41, .8); stroke: #141414; stroke-width: .8; stroke-dasharray: none; }
-  .spot-plus { font: 900 6px/1 var(--body); fill: var(--hibiscus); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
-  .spot[aria-checked="true"] .spot-plus { display: none; }
-  .tray-box { fill: #fff7d1; stroke: var(--hibiscus); stroke-width: .8; stroke-dasharray: 2 1.3; }
-  .tray-label { font: 900 4.2px/1 var(--body); letter-spacing: .08em; fill: var(--hibiscus); text-anchor: middle; }
-  .tray-tiki { cursor: grab; touch-action: none; outline: none; transform-box: fill-box; transform-origin: 50% 90%; animation: tiki-wiggle 2.4s ease-in-out infinite; }
-  .tray-tiki:focus-visible { outline: 2px solid var(--hibiscus); }
-  .tray-arrow { fill: none; stroke: var(--hibiscus); stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
-  @keyframes tiki-wiggle { 0%, 70%, 100% { transform: rotate(0); } 78% { transform: rotate(-8deg); } 86% { transform: rotate(7deg); } 94% { transform: rotate(-3deg); } }
-  .is-dragging .tray-tiki { animation: none; }
-  .tiki.dragging { pointer-events: none; filter: drop-shadow(1px 2px 1px rgba(0, 0, 0, .35)); }
-  .tiki.off-garment { opacity: .45; }
-  .tiki { cursor: grab; touch-action: none; outline: none; }
-  .tiki:active { cursor: grabbing; }
-  .tiki-ring { fill: none; stroke: transparent; stroke-width: .8; stroke-dasharray: 1.6 1; }
-  .tiki:hover .tiki-ring { stroke: #141414; }
-  .tiki.is-picked .tiki-ring, .tiki:focus-visible .tiki-ring { stroke: var(--hibiscus); stroke-width: 1; stroke-dasharray: none; fill: rgba(255, 255, 255, .25); }
-  .placer-foot { display: flex; flex-direction: column; gap: 8px; padding: 8px 4px 6px; border-top: 1px dashed #d9cfb5; margin-top: 6px; }
-  .placer-help { margin: 0; font-size: 0.86rem; color: var(--ink-soft); }
-  .placer-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-  .tool-label { font-weight: 800; font-size: 0.88rem; }
-  .tool {
-    font: 800 0.85rem/1 var(--body); color: var(--ink);
-    background: #fff; border: 2px solid var(--ink); border-radius: 999px;
-    padding: 8px 12px; cursor: pointer;
-  }
-  .tool:hover { background: var(--sun); }
-  .tool-remove { border-color: var(--hibiscus); color: var(--hibiscus); }
-  .tool-remove:hover { background: var(--hibiscus); color: #fff; }
-  .placer-summary { margin: 0; font-size: 0.92rem; }
-  .spot-size { color: var(--ink-soft); font-size: 0.85rem; }
-  .tool-size { flex-basis: 100%; font-size: 0.85rem; color: var(--ink-soft); }
-  .view-label { font: 800 4.6px/1 var(--body); letter-spacing: .14em; fill: var(--ink-soft); text-anchor: middle; }
-  @media (prefers-reduced-motion: reduce) { .garment { transition: none; } .tray-tiki { animation: none; } }
   /* Starting prices */
   .pricing { margin-top: 40px; }
   .pricing-title { margin: 0 0 14px; font: 400 1.8rem/1.1 var(--display); }
@@ -391,23 +341,6 @@
     width: 48px; height: 48px; flex: none; border-radius: 8px; border: 1px solid #d9cfb5; object-fit: contain; background: var(--sky-pale);
     display: grid; place-items: center; font: 900 0.7rem/1 var(--body); color: var(--ink-soft);
   }
-  /* Which design goes on each item */
-  .item-designs { margin: 0 0 10px; }
-  .item-designs[hidden] { display: none; }
-  .design-q { margin: 0 0 6px; font-weight: 800; font-size: 0.9rem; }
-  .design-pick { display: flex; flex-wrap: wrap; gap: 8px; }
-  .design-btn {
-    display: inline-flex; align-items: center; gap: 8px; max-width: 100%;
-    font: 800 0.82rem/1.1 var(--body); color: var(--ink); background: #fff;
-    border: 2px solid var(--ink); border-radius: 10px; padding: 4px 10px 4px 4px;
-  }
-  button.design-btn { cursor: pointer; }
-  button.design-btn:hover { background: #fff4b8; }
-  .design-btn[aria-pressed="true"] { background: #fff4b8; box-shadow: 3px 3px 0 var(--ink); }
-  .design-btn img, .design-btn .file-type { width: 32px; height: 32px; flex: none; border-radius: 6px; border: 1px solid #d9cfb5; object-fit: contain; background: var(--sky-pale); font-size: 0.6rem; }
-  .design-btn span.dn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .design-note { margin: 6px 0 0; font-size: 0.86rem; color: var(--ink-soft); }
-  .design-none { color: var(--hibiscus); font-weight: 800; }
   .timing-note {
     margin: 0; align-self: end;
     background: var(--sky-pale); border-radius: 10px; padding: 10px 12px;
@@ -484,7 +417,6 @@
   .line-art-x:hover { background: var(--hibiscus); color: #fff; }
   .line-err { grid-column: 1 / -1; margin: 0; }
   .line-err[hidden] { display: none; }
-  .design-btn .dn small { display: block; font-weight: 400; font-size: 0.75rem; color: var(--ink-soft); white-space: normal; }
   @media (max-width: 700px) {
     .color-row, .color-rows.sized .color-row, .color-rows[style] .color-row { grid-template-columns: 1fr 1fr; }
     .color-row .dot { display: none; }
@@ -965,7 +897,6 @@
     one: String(it.singular || it.name).toLowerCase(),
     picture: ['tshirt', 'hoodie', 'bag', 'cup'].includes(it.picture) ? it.picture : 'none',
     sized: !!it.hasSizes,
-    places: strList(it.printSpots).length ? strList(it.printSpots) : ['Front', 'Back'],
     colors: colorList(it.colors),
     extra: it.styleLabel ? { label: String(it.styleLabel), ph: String(it.stylePlaceholder || '') } : null,
     notesPh: String(it.detailsPlaceholder || 'What goes on it, text, names, colors, the look you want...'),
@@ -1064,96 +995,6 @@
   const form = document.getElementById('quote-form');
 
   /* ---------- Per-item details ---------- */
-  /* Tap-to-place picture: front and back views with clickable print spots.
-     Coordinates are in the 72 x 64 garment drawing's units. "Left" means the wearer's left. */
-  const TEE_FRONT = 'M22 4 L8 12 L2 26 L14 30 L14 60 L58 60 L58 30 L70 26 L64 12 L50 4 Q36 14 22 4Z';
-  const TEE_BACK = 'M22 4 L8 12 L2 26 L14 30 L14 60 L58 60 L58 30 L70 26 L64 12 L50 4 Q36 8 22 4Z';
-  const HOODIE = 'M24 7 Q36 -1 48 7 L63 14 L70 42 L60 44 L58 32 L58 60 L14 60 L14 32 L12 44 L2 42 L9 14 Z';
-  const BAG = 'M14 22 L58 22 L60 60 L12 60 Z';
-  const BAG_HANDLE = '<path d="M25 24 Q25 6 36 6 Q47 6 47 24" fill="none" stroke="#141414" stroke-width="2.4"/>';
-  const CUP = 'M21 13 L51 13 L47 61 L25 61 Z';
-  const CUP_LID = '<path d="M41 1 L44 6" stroke="#141414" stroke-width="2" stroke-linecap="round"/>' +
-    '<rect x="18" y="5" width="36" height="8" rx="2.5" fill="#fffdf6" stroke="#141414" stroke-width="1.6"/>';
-  const DIAGRAM_TYPES = {
-    tshirt: {
-      front: '<path class="garment" d="' + TEE_FRONT + '"/>',
-      back: '<path class="garment" d="' + TEE_BACK + '"/>',
-      spots: {
-        'Front': ['front', 23, 28, 26, 24], 'Left chest': ['front', 40, 15, 11, 11], 'Right chest': ['front', 21, 15, 11, 11],
-        'Left sleeve': ['front', 58, 14, 9, 10], 'Right sleeve': ['front', 5, 14, 9, 10],
-        'Back of neck': ['back', 31, 9, 10, 9], 'Back': ['back', 21, 21, 30, 30]
-      }
-    },
-    hoodie: {
-      front: '<path class="garment" d="' + HOODIE + '"/><path d="M26 8 Q36 24 46 8" fill="none" stroke="#141414" stroke-width="1.6"/>' +
-        '<path d="M25 47 L47 47 L44 57 L28 57 Z" fill="none" stroke="#141414" stroke-width="1.4" stroke-linejoin="round"/>',
-      back: '<path class="garment" d="' + HOODIE + '"/><path class="garment" d="M23 9 Q36 -9 49 9 Q36 20 23 9Z"/>',
-      spots: {
-        'Front': ['front', 24, 25, 24, 20], 'Left chest': ['front', 40, 13, 10, 10], 'Right chest': ['front', 22, 13, 10, 10],
-        'Left sleeve': ['front', 59, 22, 9, 11], 'Right sleeve': ['front', 4, 22, 9, 11],
-        'Back': ['back', 21, 21, 30, 30], 'Hood': ['back', 30, 0, 12, 10]
-      }
-    },
-    bag: {
-      front: BAG_HANDLE + '<path class="garment" d="' + BAG + '"/>',
-      back: BAG_HANDLE + '<path class="garment" d="' + BAG + '"/>',
-      spots: { 'Front': ['front', 21, 28, 30, 26], 'Back': ['back', 21, 28, 30, 26] }
-    },
-    cup: {
-      front: CUP_LID + '<path class="garment" d="' + CUP + '"/>',
-      back: CUP_LID + '<path class="garment" d="' + CUP + '"/>',
-      spots: { 'One side': ['front', 25, 18, 22, 36] }
-    }
-  };
-  const DIAGRAMS = {};
-  ITEMS.forEach(it => { if (DIAGRAM_TYPES[it.picture]) DIAGRAMS[it.key] = DIAGRAM_TYPES[it.picture]; });
-  const TIKI = KEY => '<symbol id="tiki-mark-' + KEY + '" viewBox="0 0 20 26">' +
-    '<path d="M4 4 Q6 0 8 3 Q10 -1 12 3 Q14 0 16 4" fill="#2f8f2c" stroke="#141414" stroke-width="0.8"/>' +
-    '<rect x="2.5" y="3.5" width="15" height="21" rx="2.5" fill="#c98a1e" stroke="#141414" stroke-width="1"/>' +
-    '<path d="M2.5 8.5 H17.5" stroke="#8a5a12" stroke-width="1"/>' +
-    '<rect x="3.6" y="9.5" width="5.6" height="3.8" rx="1.4" fill="#6cc8cb" stroke="#141414" stroke-width="0.9"/>' +
-    '<rect x="10.8" y="9.5" width="5.6" height="3.8" rx="1.4" fill="#6cc8cb" stroke="#141414" stroke-width="0.9"/>' +
-    '<path d="M9.2 11 H10.8" stroke="#141414" stroke-width="0.9"/>' +
-    '<rect x="5" y="16" width="10" height="5" rx="1.2" fill="#fffdf6" stroke="#141414" stroke-width="0.9"/>' +
-    '<path d="M7.5 16 V21 M10 16 V21 M12.5 16 V21 M5 18.5 H15" stroke="#141414" stroke-width="0.6"/>' +
-    '</symbol>';
-  /* Where each view sits in the picture (the tiki tray is on the left) */
-  const VIEW_X = { front: 40, back: 122 };
-  const VIEW_Y = 8;
-  const TRAY = { cx: 17, cy: 38 };
-  function placeDiagram(it) {
-    const d = DIAGRAMS[it.key];
-    const view = side => '<g class="view" data-view="' + side + '" transform="translate(' + VIEW_X[side] + ' ' + VIEW_Y + ')">' + d[side] +
-      '<g class="tikis"></g></g>';
-    return '<div class="placer" id="placer-' + it.key + '">' +
-      '<svg viewBox="0 0 198 84" role="group" aria-label="Drag the tiki onto the ' + escT(it.one) + ' to show where the print goes">' +
-        '<defs>' + TIKI(it.key) + '</defs>' +
-        '<g class="tray">' +
-          '<rect class="tray-box" x="3" y="16" width="28" height="48" rx="5"/>' +
-          '<text class="tray-label" x="17" y="23">DRAG ME</text>' +
-          '<g class="tray-tiki" tabindex="0" role="button" aria-label="Add a tiki to the ' + escT(it.one) + '">' +
-            '<rect x="7" y="25" width="20" height="26" fill="transparent"/>' +
-            '<g class="tray-mark"><use href="#tiki-mark-' + it.key + '" x="9" y="27" width="16" height="20.8"/></g>' +
-          '</g>' +
-          '<path class="tray-arrow" d="M12 57 H24 M20 54 L24 57 L20 60"/>' +
-        '</g>' +
-        view('front') + view('back') +
-        '<text class="view-label" x="' + (VIEW_X.front + 36) + '" y="82">FRONT</text><text class="view-label" x="' + (VIEW_X.back + 36) + '" y="82">BACK</text>' +
-        '<g class="drag-layer"></g>' +
-      '</svg>' +
-      '<div class="placer-foot">' +
-        '<p class="placer-help"><b>Drag the tiki onto the ' + escT(it.one) + '</b> where you want your print. Drag it around to move it, or drag it off to remove it. Add as many as you need.</p>' +
-        '<div class="placer-tools" hidden>' +
-          '<span class="tool-label">Picked tiki:</span>' +
-          '<button type="button" class="tool" data-act="smaller" aria-label="Make smaller">&minus; Smaller</button>' +
-          '<button type="button" class="tool" data-act="bigger" aria-label="Make bigger">+ Bigger</button>' +
-          '<button type="button" class="tool tool-remove" data-act="remove">Remove</button>' +
-          '<span class="tool-size"></span>' +
-        '</div>' +
-        '<p class="placer-summary" aria-live="polite"></p>' +
-      '</div></div>';
-  }
-
   /* DTF vs Dye sub, shown under the title of each fabric item so customers can pick the Print on each line */
   const PRINT_GUIDE =
     '<div class="print-guide">' +
@@ -1183,11 +1024,6 @@
           : '') +
         '<span class="color-sum">' + escT(it.label) + ' total: <strong id="csum-' + it.key + '">0</strong></span></div>' +
       '</fieldset>' +
-      '<fieldset class="group"><legend>' + escT(DIAGRAMS[it.key] ? txt(FORM.spotsQuestion, 'Where should the print go? Drag the tiki (or your uploaded design) onto the picture, or tap a spot below.') : txt(FORM.spotsQuestionNoPicture, 'Where should the print go? Pick all that apply.')) + '</legend>' +
-        '<div class="item-designs" id="designs-' + it.key + '" hidden></div>' +
-        (DIAGRAMS[it.key] ? placeDiagram(it) : '') + '<div class="checks">' +
-        it.places.map((p, i) => '<label class="check" for="place-' + it.key + '-' + i + '"><input type="checkbox" id="place-' + it.key + '-' + i + '" name="place-' + it.key + '" value="' + escT(p) + '">' + escT(p) + '</label>').join('') +
-      '</div></fieldset>' +
       '<div class="field"><label for="notes-' + it.key + '">' + escT(txt(FORM.detailsLabel, 'Design details for')) + ' ' + escT(it.label.toLowerCase()) + '</label>' +
         '<textarea id="notes-' + it.key + '" placeholder="' + escT(it.notesPh) + '"></textarea></div>' +
     '</section>'
@@ -1272,49 +1108,17 @@
 
   const details = document.getElementById('item-details');
   details.addEventListener('input', updateTotals);
-  /* ---------- Draggable tikis ----------
-     Each tiki is { id, view, cx, cy, s } in the garment drawing's 72 x 64 units.
-     Its name comes from the preset spot it sits in, or a plain description if it's somewhere else. */
-  const TIKIS = {};
-  const SELECTED = {};
-  let tikiSeq = 0;
-  const TIKI_RATIO = 26 / 20;
-
   /* ---------- Uploaded artwork ----------
      Each order line has its own small Design box, so a design belongs to those
-     exact shirts (color, fit, size). On items with a picture, the design picked
-     for that item sits in the "drag me" box, and every placed print remembers its
-     own design (t.art), so the front and back can carry different designs.
-     Without a design it's the tiki. */
+     exact shirts (color, fit, size). */
   const MAX_FILES = 10;
   let FILES = [];            // every design on a line of a picked item, no repeats
   const META = new Map();    // picture file -> { url, ratio }
   const LINE_ART = new Map(); // order line element -> its design file
   const SAME_FILE = new Map(); // "name|size|modified" of what was picked -> the ready file, so one design isn't uploaded twice
-  const TRAY_ART = {};       // item key -> picture in its "drag me" box
-  const artRatio = file => file && META.has(file) ? META.get(file).ratio : TIKI_RATIO;
-  const ratioOf = t => artRatio(t.art);
-  const markFor = (key, file, x, y, w, h) => file && META.has(file)
-    ? '<image href="' + META.get(file).url + '" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" preserveAspectRatio="xMidYMid meet"/>'
-    : '<use href="#tiki-mark-' + key + '" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '"/>';
   const rowsOf = key => [...document.querySelectorAll('#colors-' + key + ' .color-row')];
   const designsFor = key => [...new Set(rowsOf(key).map(r => LINE_ART.get(r)).filter(Boolean))];
   const syncFiles = () => { FILES = [...new Set(picked().flatMap(designsFor))]; };
-  const trayArt = key => {
-    const pics = designsFor(key).filter(f => META.has(f));
-    if (!pics.includes(TRAY_ART[key])) TRAY_ART[key] = pics[0] || null;
-    return TRAY_ART[key];
-  };
-  const designOf = t => t.art ? t.art.name : '';
-  /* Real-world size: how many inches one unit of the 72 x 64 drawing is on that product.
-     Designs can't be printed bigger than 12.5" wide x 24" tall. */
-  const IN_PER_UNIT = { tshirt: 0.45, hoodie: 0.45, bag: 0.35, cup: 0.15 };
-  const MAX_W_IN = 12.5, MAX_H_IN = 24;
-  const unitIn = key => IN_PER_UNIT[(ITEM[key] || {}).picture] || 0.45;
-  const maxS = (key, file) => Math.min(MAX_W_IN / unitIn(key), MAX_H_IN / unitIn(key) / artRatio(file), 60);
-  const roundHalf = v => String(Math.round(v * 2) / 2).replace(/\.0$/, '');
-  const sizeIn = (key, t) => ({ w: t.s * unitIn(key), h: t.s * ratioOf(t) * unitIn(key) });
-  const sizeLabel = (key, t) => { const z = sizeIn(key, t); return 'about ' + roundHalf(z.w) + '" wide x ' + roundHalf(z.h) + '" tall'; };
   const isPicture = f => /^image\/(png|jpe?g|gif|webp|svg\+xml)$/.test(f.type);
   const fmtSize = b => b > 1024 * 1024 ? (b / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
   const urls = new Map();
@@ -1337,22 +1141,8 @@
     : '<span class="file-type">' + esc((f.name.split('.').pop() || 'file').toUpperCase()) + '</span>';
   /* Put a design on one order line, or take it off (file = null) */
   function setLineArt(row, file) {
-    const key = row.closest('.color-rows').id.slice(7);
-    const hadPicture = designsFor(key).some(f => META.has(f));
     if (file) LINE_ART.set(row, file); else LINE_ART.delete(row);
-    if (file && META.has(file)) {
-      // tikis placed before any design was added take on the first design
-      if (!hadPicture) (TIKIS[key] || []).forEach(t => { if (!t.art) t.art = file; });
-      TRAY_ART[key] = file;
-    }
   }
-  /* What a line is, in a few words: "Yellow, Men's S" */
-  const lineName = row => {
-    const v = c => { const el = row.querySelector(c); return el && el.value ? el.options ? el.options[el.selectedIndex].text : el.value : ''; };
-    const color = v('.cname') === 'Other color' ? (row.querySelector('.cother').value.trim() || 'Other color') : v('.cname');
-    return [color, v('.cstyle'), [v('.cfit'), v('.csize')].filter(x => x && x !== 'Fit' && x !== 'Size').join(' ')]
-      .filter(x => x && x !== 'Pick one' && x !== 'Style').join(', ') || 'Line ' + (rowsOf(row.closest('.color-rows').id.slice(7)).indexOf(row) + 1);
-  };
   /* The little Design box on each line */
   function renderLineArt(row) {
     const box = row.querySelector('.line-art');
@@ -1368,48 +1158,6 @@
   function afterArtChange() {
     syncFiles();
     document.querySelectorAll('.color-row').forEach(renderLineArt);
-    // a print whose design no longer goes on that item comes off the picture
-    Object.keys(TIKIS).forEach(key => {
-      const mine = designsFor(key);
-      TIKIS[key] = (TIKIS[key] || []).filter(t => !t.art || mine.includes(t.art));
-      if (!TIKIS[key].some(t => t.id === SELECTED[key])) SELECTED[key] = null;
-      TIKIS[key].forEach(t => clampTiki(t, key));
-      renderTikis(key);
-    });
-    document.querySelectorAll('.tray-mark').forEach(g => {
-      const key = g.closest('.placer').id.slice(7);
-      const file = trayArt(key);
-      // fit the design inside the tray's 16 x 20.8 slot
-      let w = 16, h = 16 * artRatio(file);
-      if (h > 20.8) { h = 20.8; w = h / artRatio(file); }
-      g.innerHTML = markFor(key, file, 17 - w / 2, 37.4 - h / 2, w, h);
-    });
-    renderDesignPicks();
-  }
-  /* In each item's section: the designs on its lines. On items with a picture,
-     tapping one puts it in the "drag me" box. */
-  function renderDesignPicks() {
-    ITEMS.forEach(it => {
-      const box = document.getElementById('designs-' + it.key);
-      const mine = designsFor(it.key);
-      box.hidden = !mine.length;
-      if (!mine.length) { box.innerHTML = ''; return; }
-      const placer = !!DIAGRAMS[it.key];
-      const tray = placer ? trayArt(it.key) : null;
-      const pics = mine.filter(f => META.has(f));
-      const rows = rowsOf(it.key);
-      box.innerHTML = '<p class="design-q">Your design' + (mine.length > 1 ? 's' : '') + ':</p>' +
-        '<div class="design-pick">' + mine.map((f, i) => {
-          const on = rows.filter(r => LINE_ART.get(r) === f).map(lineName).join(' · ');
-          const inner = thumb(f) + '<span class="dn">' + esc(f.name) + '<small>' + esc(on) + '</small></span>';
-          return placer && META.has(f)
-            ? '<button type="button" class="design-btn" data-tray="' + i + '" aria-pressed="' + (tray === f) + '">' + inner + '</button>'
-            : '<span class="design-btn">' + inner + '</span>';
-        }).join('') + '</div>' +
-        (placer && pics.length
-          ? '<p class="design-note">' + (pics.length > 1 ? 'Tap a design to put it in the box, then drag it onto the ' + esc(it.one) + '.' : 'Drag it from the box onto the ' + esc(it.one) + '.') + '</p>'
-          : '');
-    });
   }
   /* Big photos get shrunk in the browser so every file fits the 5 MB-per-file upload limit.
      Prints top out at 12.5" x 24", so 4000 pixels on the long side is still sharp enough to print.
@@ -1494,229 +1242,19 @@
     box.classList.remove('is-over');
     if (e.dataTransfer && e.dataTransfer.files.length) addLineFile(box.closest('.color-row'), e.dataTransfer.files[0]);
   });
-  const placeBox = (key, place) => form.querySelector('input[name="place-' + key + '"][value="' + CSS.escape(place) + '"]');
-  function spotFor(key, t) {
-    const spots = DIAGRAMS[key].spots;
-    let best = null;
-    Object.keys(spots).forEach(name => {
-      const [view, x, y, w, h] = spots[name];
-      if (view === t.view && t.cx >= x && t.cx <= x + w && t.cy >= y && t.cy <= y + h && (!best || w * h < best.area)) best = { name, area: w * h };
-    });
-    return best && best.name;
-  }
-  function tikiLabel(key, t) {
-    if (t.name) return t.name; // placed from a spot name that has no set place on the picture
-    const spot = spotFor(key, t);
-    if (spot) return spot;
-    const v = t.cy < 22 ? 'upper' : t.cy < 42 ? 'middle' : 'lower';
-    // Wearer's left is on the picture's right on the front view, and on the picture's left on the back view
-    const pictureSide = t.cx < 27 ? 'left' : t.cx > 45 ? 'right' : 'center';
-    const side = pictureSide === 'center' ? 'center' : t.view === 'front' ? (pictureSide === 'left' ? 'right' : 'left') : pictureSide;
-    return (t.view === 'front' ? 'Front' : 'Back') + ', custom spot (' + v + (side === 'center' ? ' center' : ' ' + side + ' side') + ')';
-  }
-  function renderTikis(key) {
-    const placer = document.getElementById('placer-' + key);
-    if (!placer) return;
-    ['front', 'back'].forEach(view => {
-      const layer = placer.querySelector('.view[data-view="' + view + '"] .tikis');
-      layer.innerHTML = (TIKIS[key] || []).filter(t => t.view === view).map(t => {
-        const w = t.s, h = t.s * ratioOf(t);
-        return '<g class="tiki' + (SELECTED[key] === t.id ? ' is-picked' : '') + '" data-id="' + t.id + '" tabindex="0" role="button" aria-label="' + escT(designOf(t) || 'Tiki') + ' at ' + escT(tikiLabel(key, t)) + '. Drag to move.">' +
-          '<rect class="tiki-ring" x="' + (t.cx - w / 2 - 1.2) + '" y="' + (t.cy - h / 2 - 1.2) + '" width="' + (w + 2.4) + '" height="' + (h + 2.4) + '" rx="2"/>' +
-          markFor(key, t.art, t.cx - w / 2, t.cy - h / 2, w, h) +
-        '</g>';
-      }).join('');
-    });
-    const placed = (TIKIS[key] || []).filter(t => t.view);
-    const labels = placed.map(t => tikiLabel(key, t));
-    placer.querySelectorAll('.spot').forEach(s => s.setAttribute('aria-checked', String(labels.includes(s.dataset.place))));
-    form.querySelectorAll('input[name="place-' + key + '"]').forEach(cb => { cb.checked = labels.includes(cb.value); });
-    placer.querySelector('.placer-summary').innerHTML = labels.length
-      ? '<b>Your print spots:</b> ' + placed.map(t => escT(tikiLabel(key, t)) + (designOf(t) ? ': ' + escT(designOf(t)) : '') + ' <span class="spot-size">(' + sizeLabel(key, t) + ')</span>').join(' · ')
-      : 'No spots picked yet.';
-    const picked = (TIKIS[key] || []).find(t => t.id === SELECTED[key] && t.view);
-    placer.querySelector('.placer-tools').hidden = !picked;
-    if (picked) {
-      const atMax = picked.s >= maxS(key, picked.art) - 0.01;
-      placer.querySelector('.tool-size').textContent = 'Print size ' + sizeLabel(key, picked) + (atMax ? '. That\'s the biggest we print (12.5" x 24").' : '');
-    }
-  }
-  function addTikiAt(key, spotName) {
-    const spot = DIAGRAMS[key].spots[spotName];
-    const [view, x, y, w, h] = spot || ['front', 26, 22, 20, 20];
-    const art = trayArt(key);
-    const s = Math.min(w, h / artRatio(art)) * 0.85;
-    const t = { id: ++tikiSeq, view, cx: x + w / 2, cy: y + h / 2, s, art };
-    if (!spot) t.name = spotName;
-    (TIKIS[key] = TIKIS[key] || []).push(t);
-    SELECTED[key] = t.id;
-    renderTikis(key);
-  }
-  function removeTikisAt(key, spotName) {
-    TIKIS[key] = (TIKIS[key] || []).filter(t => tikiLabel(key, t) !== spotName);
-    renderTikis(key);
-  }
-  function toggleSpot(spot) {
-    const key = spot.closest('.placer').id.slice(7);
-    const name = spot.dataset.place;
-    if ((TIKIS[key] || []).some(t => tikiLabel(key, t) === name)) removeTikisAt(key, name);
-    else addTikiAt(key, name);
-  }
-  const clampTiki = (t, key) => {
-    if (key) t.s = Math.min(t.s, maxS(key, t.art));
-    const hw = t.s / 2, hh = t.s * ratioOf(t) / 2;
-    t.cx = Math.min(72 - hw, Math.max(hw, t.cx));
-    t.cy = Math.min(64 - hh, Math.max(hh, t.cy));
-  };
-  const findTiki = (key, id) => (TIKIS[key] || []).find(t => t.id === id);
-
-  /* Dragging with mouse or finger: from the tray onto the picture, around it, or off it to remove */
-  const tikiMarkup = (key, art, cx, cy, s, cls) => {
-    const w = s, h = s * artRatio(art);
-    return '<g class="tiki ' + cls + '">' + markFor(key, art, cx - w / 2, cy - h / 2, w, h) + '</g>';
-  };
-  function dropTarget(svg, rx, ry) {
-    for (const side of ['front', 'back']) {
-      const lx = rx - VIEW_X[side], ly = ry - VIEW_Y;
-      const shapes = svg.querySelectorAll('.view[data-view="' + side + '"] .garment');
-      if ([...shapes].some(p => p.isPointInFill(new DOMPoint(lx, ly)))) return { view: side, cx: lx, cy: ly };
-    }
-    return null;
-  }
-  function addTikiCenter(key) {
-    const t = { id: ++tikiSeq, view: 'front', cx: 36, cy: 34, s: 12, art: trayArt(key) };
-    clampTiki(t, key);
-    (TIKIS[key] = TIKIS[key] || []).push(t);
-    SELECTED[key] = t.id;
-    renderTikis(key);
-  }
-  let drag = null;
-  details.addEventListener('pointerdown', e => {
-    const g = e.target.closest && (e.target.closest('.tiki') || e.target.closest('.tray-tiki'));
-    if (!g || g.classList.contains('dragging')) return;
-    e.preventDefault();
-    const placer = g.closest('.placer');
-    const key = placer.id.slice(7);
-    const svg = placer.querySelector('svg');
-    const toRoot = ev => new DOMPoint(ev.clientX, ev.clientY).matrixTransform(svg.getScreenCTM().inverse());
-    const p = toRoot(e);
-    let t, cx, cy;
-    if (g.classList.contains('tray-tiki')) {
-      t = { id: ++tikiSeq, view: null, cx: 0, cy: 0, s: 12, fresh: true, art: trayArt(key) };
-      cx = TRAY.cx; cy = TRAY.cy;
-    } else {
-      t = findTiki(key, +g.dataset.id);
-      cx = t.cx + VIEW_X[t.view]; cy = t.cy + VIEW_Y;
-    }
-    drag = { key, t, svg, toRoot, dx: cx - p.x, dy: cy - p.y, rx: cx, ry: cy, startX: e.clientX, startY: e.clientY, moved: false, pointerId: e.pointerId, tray: g.classList.contains('tray-tiki') };
-    if (!drag.tray) { SELECTED[key] = t.id; renderTikis(key); }
-  });
-  window.addEventListener('pointermove', e => {
-    if (!drag || e.pointerId !== drag.pointerId) return;
-    if (!drag.moved && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 4) return;
-    if (!drag.moved) {
-      drag.moved = true;
-      drag.prevView = drag.t.view;
-      drag.t.view = null; // hide it from the picture while it's in the air
-      renderTikis(drag.key);
-      drag.svg.closest('.placer').classList.add('is-dragging');
-    }
-    const p = drag.toRoot(e);
-    drag.rx = p.x + drag.dx;
-    drag.ry = p.y + drag.dy;
-    const over = dropTarget(drag.svg, drag.rx, drag.ry);
-    drag.svg.querySelector('.drag-layer').innerHTML = tikiMarkup(drag.key, drag.t.art, drag.rx, drag.ry, drag.t.s, 'dragging' + (over ? '' : ' off-garment'));
-  });
-  function endDrag(e) {
-    if (!drag || e.pointerId !== drag.pointerId) return;
-    const { key, t, svg } = drag;
-    svg.querySelector('.drag-layer').innerHTML = '';
-    svg.closest('.placer').classList.remove('is-dragging');
-    if (!drag.moved) {
-      if (drag.tray) addTikiCenter(key);
-      drag = null;
-      return;
-    }
-    const spot = e.type === 'pointerup' ? dropTarget(svg, drag.rx, drag.ry) : null;
-    if (spot) {
-      t.view = spot.view; t.cx = spot.cx; t.cy = spot.cy; delete t.name;
-      clampTiki(t, key);
-      if (t.fresh) { delete t.fresh; (TIKIS[key] = TIKIS[key] || []).push(t); }
-      SELECTED[key] = t.id;
-    } else if (!drag.tray && e.type === 'pointercancel') {
-      t.view = drag.prevView;
-    } else {
-      TIKIS[key] = (TIKIS[key] || []).filter(x => x !== t);
-      if (SELECTED[key] === t.id) SELECTED[key] = null;
-    }
-    drag = null;
-    renderTikis(key);
-  }
-  window.addEventListener('pointerup', endDrag);
-  window.addEventListener('pointercancel', endDrag);
-
-  function tool(key, act) {
-    const t = findTiki(key, SELECTED[key]);
-    if (!t) return;
-    if (act === 'remove') { TIKIS[key] = TIKIS[key].filter(x => x !== t); SELECTED[key] = null; }
-    if (act === 'bigger') t.s = Math.min(maxS(key, t.art), t.s * 1.2);
-    if (act === 'smaller') t.s = Math.max(3, t.s / 1.2);
-    clampTiki(t, key);
-    renderTikis(key);
-  }
-  /* The picture takes the color of the first line in the order */
-  function tintGarment(key) {
-    const placer = document.getElementById('placer-' + key);
-    if (!placer) return;
-    const first = [...document.querySelectorAll('#colors-' + key + ' .cname')].map(s => colorsFor(ITEM[key]).find(c => c.name === s.value)).find(Boolean);
-    placer.style.setProperty('--garment', first ? first.hex : '#ffffff');
-  }
-  details.addEventListener('keydown', e => {
-    const spot = e.target.closest && e.target.closest('.spot');
-    if (spot && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleSpot(spot); return; }
-    const tray = e.target.closest && e.target.closest('.tray-tiki');
-    if (tray && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); addTikiCenter(tray.closest('.placer').id.slice(7)); return; }
-    const g = e.target.closest && e.target.closest('.tiki');
-    if (!g) return;
-    const key = g.closest('.placer').id.slice(7);
-    const t = findTiki(key, +g.dataset.id);
-    const step = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
-    if (step) { e.preventDefault(); t.cx += step[0]; t.cy += step[1]; delete t.name; clampTiki(t, key); SELECTED[key] = t.id; renderTikis(key); }
-    else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); SELECTED[key] = t.id; tool(key, 'remove'); return; }
-    else return;
-    const again = document.querySelector('#placer-' + key + ' .tiki[data-id="' + t.id + '"]');
-    if (again) again.focus();
-  });
 
   details.addEventListener('change', e => {
     const row = e.target.closest('.color-row');
-    const pname = e.target.name || '';
-    if (pname.startsWith('place-') && DIAGRAMS[pname.slice(6)]) {
-      const key = pname.slice(6);
-      if (e.target.checked) addTikiAt(key, e.target.value); else removeTikisAt(key, e.target.value);
-    }
-    if (e.target.classList.contains('cname')) { paintRow(row); tintGarment(row.closest('.color-rows').id.slice(7)); }
+    if (e.target.classList.contains('cname')) paintRow(row);
     if (e.target.classList.contains('cfit')) {
       const size = row.querySelector('.csize');
       const keep = size.value;
       size.innerHTML = sizeOptions(e.target.value);
       if ([...size.options].some(o => o.value === keep)) size.value = keep;
     }
-    if (row && LINE_ART.has(row)) renderDesignPicks(); // design buttons name their lines
     updateTotals();
   });
   details.addEventListener('click', e => {
-    const spot = e.target.closest('.spot');
-    if (spot) { toggleSpot(spot); return; }
-    const pick = e.target.closest('[data-tray]');
-    if (pick) {
-      const key = pick.closest('.item-designs').id.slice(8);
-      TRAY_ART[key] = designsFor(key)[+pick.dataset.tray];
-      afterArtChange();
-      const again = document.querySelector('#designs-' + key + ' [data-tray="' + pick.dataset.tray + '"]');
-      if (again) again.focus();
-      return;
-    }
     const go = e.target.closest('[data-goto]');
     if (go) { goToItem(go.dataset.from, go.dataset.goto); return; }
     const unart = e.target.closest('.line-art-x');
@@ -1727,8 +1265,6 @@
       row.querySelector('.line-art-pick').focus();
       return;
     }
-    const btn = e.target.closest('.tool');
-    if (btn) { tool(btn.closest('.placer').id.slice(7), btn.dataset.act); return; }
     const add = e.target.closest('.add-color');
     if (add) { const row = addColorRow(ITEM[add.dataset.item]); row.querySelector('.cname').focus(); return; }
     const rm = e.target.closest('.remove-color');
@@ -1738,12 +1274,11 @@
       LINE_ART.delete(row);
       row.remove();
       updateRemoveButtons(it);
-      tintGarment(it.key);
       afterArtChange();
       updateTotals();
     }
   });
-  ITEMS.forEach(it => { addColorRow(it); tintGarment(it.key); if (DIAGRAMS[it.key]) renderTikis(it.key); });
+  ITEMS.forEach(it => addColorRow(it));
 
   const picked = () => [...form.querySelectorAll('input[name="items"]:checked')].map(c => c.value);
   function updateItem() {
@@ -1753,26 +1288,20 @@
     syncFiles(); // designs on items that were un-picked aren't sent
   }
   form.querySelectorAll('input[name="items"]').forEach(c => c.addEventListener('change', updateItem));
-  /* "Also put it on" a jacket, bag, tumbler...: opens that item's section, brings the
-     design along on its first open line so it's ready in the "drag me" box, and
-     scrolls to the picture to drag it on */
+  /* "Also put it on" a jacket, bag, tumbler...: opens that item's section and brings the
+     first design along on its first open line */
   function goToItem(from, to) {
     const pick = document.getElementById('it-' + to);
     if (!pick.checked) { pick.checked = true; updateItem(); }
-    const mine = designsFor(from);
-    const art = mine.includes(TRAY_ART[from]) ? TRAY_ART[from] : mine[0];
+    const art = designsFor(from)[0];
     if (art && !designsFor(to).includes(art)) {
       const row = rowsOf(to).find(r => !LINE_ART.has(r)) || addColorRow(ITEM[to]);
       setLineArt(row, art);
     }
-    if (art && META.has(art)) TRAY_ART[to] = art;
     afterArtChange();
     const card = document.getElementById('card-' + to);
-    const target = document.getElementById('placer-' + to) || card;
-    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
     card.classList.remove('is-arrived'); void card.offsetWidth; card.classList.add('is-arrived');
-    const tray = target.querySelector('.tray-tiki');
-    if (tray) tray.focus({ preventScroll: true });
   }
   updateItem();
   updateTotals();
@@ -1800,11 +1329,7 @@
         const what = [l.color || 'Color not picked', l.style, [l.fit, l.size].filter(Boolean).join(' ')].filter(Boolean).join(', ');
         lines.push('  - ' + l.qty + ' x ' + what + (l.print ? ' [' + l.print + ']' : '') + (l.design ? ' (design: ' + l.design + ')' : ''));
       });
-      const places = DIAGRAMS[it.key]
-        ? (TIKIS[it.key] || []).filter(t => t.view).map(t => tikiLabel(it.key, t) + (designOf(t) ? ': ' + designOf(t) : '') + ' (' + sizeLabel(it.key, t) + ')')
-        : [...form.querySelectorAll('input[name="place-' + it.key + '"]:checked')].map(c => c.value);
       const notes = document.getElementById('notes-' + it.key).value.trim();
-      lines.push('Print on: ' + (places.join(', ') || 'not sure yet'));
       if (notes) lines.push('Details: ' + notes);
     });
     if (FILES.length) lines.push('', 'Artwork uploaded: ' + FILES.map(f => f.name).join(', '));
@@ -1821,9 +1346,6 @@
         extra: it.extra ? { question: it.extra.label.replace(' (optional)', ''), answer: document.getElementById('extra-' + it.key).value.trim() } : null,
         lines: lineList(it),
         designs: designsFor(it.key).map(f => f.name),
-        placements: DIAGRAMS[it.key]
-          ? (TIKIS[it.key] || []).filter(t => t.view).map(t => ({ spot: tikiLabel(it.key, t), side: t.view, size: sizeLabel(it.key, t), design: designOf(t) }))
-          : [...form.querySelectorAll('input[name="place-' + it.key + '"]:checked')].map(c => ({ spot: c.value })),
         method: [...new Set(lineList(it).map(l => l.print).filter(Boolean))].join(', '), // summary of the per-line prints
         notes: document.getElementById('notes-' + it.key).value.trim()
       })),
@@ -1853,7 +1375,7 @@
     copyText(document.getElementById('q-text').textContent, e.currentTarget));
 
   /* ---------- Sending ----------
-     On the live site, Send saves the whole order (details, shirt mockups and artwork files)
+     On the live site, Send saves the whole order (details and artwork files)
      for the Orders page at /admin/orders, then posts a short Netlify Forms message so the
      shop gets an email alert. If the order service isn't available, it falls back to sending
      everything through Netlify Forms, and then to a pre-filled Gmail message. */
@@ -1874,35 +1396,6 @@
     ? escT(txt(FORM.sendHint, 'Your request and any artwork you uploaded go straight to Tiki T\'s.'))
     : 'Gmail opens in a new tab with your request filled in. Just hit Send there, and attach any artwork before you send.';
 
-  /* A picture of each product with the design placed where the customer put it */
-  const readAsDataUrl = blob => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob); });
-  async function mockupBlob(it) {
-    const tikis = (TIKIS[it.key] || []).filter(t => t.view);
-    const type = DIAGRAM_TYPES[it.picture];
-    if (!type || !tikis.length) return null;
-    const first = lineList(it).map(l => colorsFor(it).find(c => c.name === l.color)).find(Boolean);
-    const fill = first ? first.hex : '#ffffff';
-    const artUrls = new Map();
-    for (const t of tikis) if (t.art && META.has(t.art) && !artUrls.has(t.art)) artUrls.set(t.art, await readAsDataUrl(t.art));
-    const mark = (art, x, y, w, h) => artUrls.has(art)
-      ? '<image href="' + artUrls.get(art) + '" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" preserveAspectRatio="xMidYMid meet"/>'
-      : '<use href="#tiki-mark-m" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '"/>';
-    const paint = s => s.replace(/class="garment"/g, 'fill="' + fill + '" stroke="#141414" stroke-width="1.4" stroke-linejoin="round"');
-    const view = (side, ox) => '<g transform="translate(' + ox + ' 8)">' + paint(type[side]) +
-      tikis.filter(t => t.view === side).map(t => { const w = t.s, h = t.s * ratioOf(t); return mark(t.art, t.cx - w / 2, t.cy - h / 2, w, h); }).join('') + '</g>';
-    const label = (x, s) => '<text x="' + x + '" y="81" font-family="Arial, sans-serif" font-size="4.6" font-weight="700" letter-spacing="0.6" fill="#3b3528" text-anchor="middle">' + s + '</text>';
-    const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 164 84" width="1312" height="672">' +
-      '<rect width="164" height="84" fill="#ffffff"/><defs>' + TIKI('m') + '</defs>' +
-      view('front', 4) + view('back', 88) + label(40, 'FRONT') + label(124, 'BACK') + '</svg>';
-    const img = new Image();
-    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-    await img.decode();
-    const canvas = document.createElement('canvas');
-    canvas.width = 1312; canvas.height = 672;
-    canvas.getContext('2d').drawImage(img, 0, 0);
-    return new Promise(res => canvas.toBlob(res, 'image/png'));
-  }
-
   async function postQuote(p, withFiles, orderId) {
     const fd = new FormData();
     fd.append('form-name', 'quote-request');
@@ -1910,7 +1403,7 @@
     fd.append('subject', 'You got a new quote request from ' + p.name);
     fd.append('name', p.name);
     if (orderId) {
-      // The full order (details, mockups, files) is on the Orders page, so the email is just a heads-up
+      // The full order (details, files) is on the Orders page, so the email is just a heads-up
       fd.append('summary', 'You got a new quote request from ' + p.name + '. Open your Orders page to see it and send them a price: ' + location.origin + '/admin/orders/');
     } else {
       // Backup path: the order service was down, so the email has to carry everything
@@ -1926,12 +1419,6 @@
     if (!r.ok) throw new Error('order service ' + r.status);
     const { id } = await r.json();
     const uploads = FILES.map(f => ({ blob: f, name: f.name, kind: 'art' }));
-    for (const it of ITEMS.filter(i => picked().includes(i.key))) {
-      try {
-        const m = await mockupBlob(it);
-        if (m) uploads.push({ blob: m, name: 'mockup-' + it.label.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.png', kind: 'mockup' });
-      } catch (err) { /* a mockup that won't draw shouldn't stop the order */ }
-    }
     for (let i = 0; i < uploads.length; i++) {
       const u = uploads[i];
       progress('Sending your files (' + (i + 1) + ' of ' + uploads.length + ')...');
@@ -1976,7 +1463,7 @@
         (FILES.length ? ' and attach your artwork there' : '') + '.', 'error');
     }
   });
-  if (location.hostname === 'localhost') window.__tikiTest = { mockupBlob, ITEMS, TIKIS, lineList };
+  if (location.hostname === 'localhost') window.__tikiTest = { ITEMS, lineList };
   document.getElementById('q-send').addEventListener('keydown', e => {
     if ((e.key === ' ' || e.key === 'Enter') && !e.currentTarget.getAttribute('href')) { e.preventDefault(); e.currentTarget.click(); }
   });
