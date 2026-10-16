@@ -119,6 +119,20 @@
   .lines td { padding: 6px 8px; border-bottom: 1px solid var(--line); }
   .lines td.qty { font-weight: 900; width: 3em; }
   .table-scroll { overflow-x: auto; }
+  /* Each order line: its design picture beside what goes on it */
+  .line-cards { display: grid; gap: 10px; }
+  .line-card { display: grid; grid-template-columns: 150px 1fr; gap: 14px; align-items: center; border: 2px solid var(--ink); border-radius: 12px; padding: 10px; background: #fff; }
+  .lc-art { aspect-ratio: 1; border-radius: 8px; overflow: hidden; display: grid; place-items: center; background: repeating-conic-gradient(#f1ede3 0 25%, #fff 0 50%) 0 0 / 16px 16px; }
+  .lc-art img { width: 100%; height: 100%; object-fit: contain; }
+  .lc-art .ext { font-weight: 900; color: var(--soft); }
+  .lc-info { display: grid; gap: 4px; justify-items: start; }
+  .lc-info p { margin: 0; }
+  .lc-what { font-size: 1.15rem; font-weight: 800; }
+  .lc-qty { color: var(--pink); font-weight: 900; }
+  .lc-print b { color: var(--pink); }
+  .lc-file { font-size: 0.85rem; color: var(--soft); overflow-wrap: anywhere; }
+  .lc-none { color: var(--soft); font-style: italic; }
+  .lc-info .btn { margin-top: 4px; }
   .kv { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 0; }
   .kv dt { color: var(--soft); font-weight: 800; font-size: 0.9rem; }
   .kv dd { margin: 0; }
@@ -143,6 +157,7 @@
   @media (max-width: 600px) {
     .head-actions { margin-left: 0; width: 100%; }
     .file, .file.mockup { width: 100%; }
+    .line-card { grid-template-columns: 96px 1fr; }
     .price-form { grid-template-columns: 1fr; }
   }
 </style>
@@ -294,20 +309,40 @@
       '</div>';
   }
 
-  function itemHtml(it) {
-    const lines = (it.lines || []).map(l =>
-      '<tr><td class="qty">' + esc(l.qty) + '</td><td>' + esc(l.color || '-') + (l.print ? '<br><small>Print: <b>' + esc(l.print) + '</b></small>' : '') + (l.design ? '<br><small>Design: ' + esc(l.design) + '</small>' : '') + '</td><td>' + esc(l.style || '') + '</td><td>' + esc([l.fit, l.size].filter(Boolean).join(' ')) + '</td></tr>').join('');
+  // Uploaded file names are cleaned up by the server (netlify/functions/order-file.mjs), so match the same way
+  const cleanName = n => String(n || '').replace(/[^\w.\- ]+/g, '_').slice(0, 100);
+  const artFor = (o, name) => name ? (o.uploads || []).find(u => u.kind !== 'mockup' && u.name === cleanName(name)) : null;
+  const mockupFor = (o, it) => (o.uploads || []).find(u => u.kind === 'mockup' && u.name === 'mockup-' + String(it.product || '').toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.png');
+
+  // One order line: its design picture next to exactly what goes on it
+  function lineHtml(o, l) {
+    const art = artFor(o, l.design);
+    const isImg = art && /^image\//.test(art.type);
+    const what = [l.color || 'Color not picked', l.style, [l.fit, l.size].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
+    return '<div class="line-card">' +
+      '<div class="lc-art">' + (art ? (isImg ? '<img data-key="' + esc(art.key) + '" alt="' + esc(art.name) + '">' : '<span class="ext">' + esc((art.name.split('.').pop() || 'file').toUpperCase()) + '</span>')
+                                    : '<span class="lc-none">' + (l.design ? 'File missing' : 'No design') + '</span>') + '</div>' +
+      '<div class="lc-info">' +
+        '<p class="lc-what"><span class="lc-qty">' + esc(l.qty) + ' ×</span> ' + esc(what) + '</p>' +
+        '<p class="lc-print">Print: ' + (l.print ? '<b>' + esc(l.print) + '</b>' : '<span class="lc-none">not picked</span>') + '</p>' +
+        (l.design ? '<p class="lc-file">Design: ' + esc(l.design) + '</p>' : '') +
+        (art ? '<button type="button" class="btn" data-download="' + esc(art.key) + '" data-name="' + esc(art.name) + '">Download design</button>' : '') +
+      '</div></div>';
+  }
+
+  function itemHtml(o, it) {
+    const lines = (it.lines || []).map(l => lineHtml(o, l)).join('');
+    const mock = mockupFor(o, it);
     const places = (it.placements || []).map(p => '<li>' + esc(p.spot) + (p.design ? ': <b>' + esc(p.design) + '</b>' : '') + (p.size ? ' <span style="color:var(--soft)">(' + esc(p.size) + ')</span>' : '') + '</li>').join('');
     const kv = [
-      (it.designs || []).length ? ['Design', esc(it.designs.join(', '))] : null,
       ['Print on', places ? '<ul>' + places + '</ul>' : 'Not sure yet'],
-      ['Print method', esc(it.method || '-')],
       it.material ? ['Material', esc(it.material)] : null,
       it.extra && it.extra.answer ? [esc(it.extra.question), esc(it.extra.answer)] : null,
       it.notes ? ['Design details', esc(it.notes)] : null
     ].filter(Boolean).map(([k, v]) => '<dt>' + k + '</dt><dd>' + v + '</dd>').join('');
     return '<div class="item"><h3>' + esc(it.product) + ' <span class="total">' + esc(it.total) + ' total</span></h3>' +
-      (lines ? '<div class="table-scroll"><table class="lines"><thead><tr><th>Qty</th><th>Color</th><th>Style</th><th>Size</th></tr></thead><tbody>' + lines + '</tbody></table></div>' : '') +
+      (lines ? '<div class="line-cards">' + lines + '</div>' : '') +
+      (mock ? '<div><p class="section-label">Where they put it</p><div class="gallery">' + fileHtml(mock) + '</div></div>' : '') +
       '<dl class="kv">' + kv + '</dl></div>';
   }
 
@@ -321,8 +356,11 @@
 
   function orderHtml(o) {
     const st = statusOf(o);
-    const mockups = (o.uploads || []).filter(u => u.kind === 'mockup');
+    const items = o.items || [];
     const art = (o.uploads || []).filter(u => u.kind !== 'mockup');
+    // Files and mockups already shown on a line or item aren't repeated at the bottom
+    const shown = new Set(items.flatMap(it => [mockupFor(o, it), ...(it.lines || []).map(l => artFor(o, l.design))]).filter(Boolean));
+    const leftover = (o.uploads || []).filter(u => !shown.has(u));
     const mainAction = st === 'done'
       ? '<button type="button" class="btn" data-status="' + (o.paid ? 'paid' : o.response && o.response.answer === 'accept' ? 'approved' : o.quote ? 'quoted' : 'new') + '">Move back</button>'
       : '<button type="button" class="btn' + (st === 'paid' ? ' primary' : '') + '" data-status="done">Mark as done</button>';
@@ -340,11 +378,9 @@
           '<div class="fact"><small>Artwork</small><span>' + esc(o.artwork || '-') + '</span></div>' +
         '</div>' +
         priceHtml(o) +
-        (o.items || []).map(itemHtml).join('') +
-        (mockups.length ? '<div><p class="section-label">Where they put the design</p><div class="gallery">' + mockups.map(fileHtml).join('') + '</div></div>' : '') +
-        (art.length ? '<div><div class="files-head"><p class="section-label">Their files (ready to print)</p>' +
-          (art.length > 1 ? '<button type="button" class="btn primary" data-download-all>Download all files</button>' : '') +
-          '</div><div class="gallery">' + art.map(fileHtml).join('') + '</div></div>' : '') +
+        (art.length > 1 ? '<div class="files-head"><p class="section-label">What goes on each one</p><button type="button" class="btn primary" data-download-all>Download all ' + art.length + ' design files</button></div>' : '') +
+        items.map(it => itemHtml(o, it)).join('') +
+        (leftover.length ? '<div><p class="section-label">Other files they sent</p><div class="gallery">' + leftover.map(fileHtml).join('') + '</div></div>' : '') +
         (o.text ? '<details class="full"><summary>Show the full message</summary><pre>' + esc(o.text) + '</pre></details>' : '') +
       '</div></article>';
   }
