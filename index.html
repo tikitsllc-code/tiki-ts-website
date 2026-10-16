@@ -430,7 +430,21 @@
     padding: 11px 16px; cursor: pointer; box-shadow: 3px 3px 0 var(--ink);
   }
   .add-color:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
-  .color-sum { font-weight: 800; }
+  .color-sum { font-weight: 800; margin-left: auto; }
+  /* "Also put it on" shortcuts to the other items */
+  .also-on { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .also-label { font-weight: 800; font-size: 0.88rem; }
+  .also-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font: 800 0.85rem/1 var(--body); color: var(--ink); background: #fff;
+    border: 2px solid var(--ink); border-radius: 10px; padding: 5px 10px 5px 6px;
+    cursor: pointer; box-shadow: 2px 2px 0 var(--ink);
+  }
+  .also-btn svg { width: 26px; height: 23px; flex: none; }
+  .also-btn:hover { background: var(--sun); transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink); }
+  .item-card.is-arrived { animation: arrive 1.2s ease-out; }
+  @keyframes arrive { 0% { box-shadow: 0 0 0 6px var(--sun); } 100% { box-shadow: 0 0 0 0 transparent; } }
+  @media (prefers-reduced-motion: reduce) { .item-card.is-arrived { animation: none; } }
   .color-sum strong { color: var(--hibiscus); font-size: 1.1rem; }
   .color-rows.sized .color-row { grid-template-columns: auto minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 0.8fr) 88px 62px auto; }
   .color-rows[style] .color-row { grid-template-columns: var(--cols); }
@@ -1064,6 +1078,9 @@
   const HOODIE = 'M24 7 Q36 -1 48 7 L63 14 L70 42 L60 44 L58 32 L58 60 L14 60 L14 32 L12 44 L2 42 L9 14 Z';
   const BAG = 'M14 22 L58 22 L60 60 L12 60 Z';
   const BAG_HANDLE = '<path d="M25 24 Q25 6 36 6 Q47 6 47 24" fill="none" stroke="#141414" stroke-width="2.4"/>';
+  const CUP = 'M21 13 L51 13 L47 61 L25 61 Z';
+  const CUP_LID = '<path d="M41 1 L44 6" stroke="#141414" stroke-width="2" stroke-linecap="round"/>' +
+    '<rect x="18" y="5" width="36" height="8" rx="2.5" fill="#fffdf6" stroke="#141414" stroke-width="1.6"/>';
   const DIAGRAM_TYPES = {
     tshirt: {
       front: '<path class="garment" d="' + TEE_FRONT + '"/>',
@@ -1088,6 +1105,11 @@
       front: BAG_HANDLE + '<path class="garment" d="' + BAG + '"/>',
       back: BAG_HANDLE + '<path class="garment" d="' + BAG + '"/>',
       spots: { 'Front': ['front', 21, 28, 30, 26], 'Back': ['back', 21, 28, 30, 26] }
+    },
+    cup: {
+      front: CUP_LID + '<path class="garment" d="' + CUP + '"/>',
+      back: CUP_LID + '<path class="garment" d="' + CUP + '"/>',
+      spots: { 'One side': ['front', 25, 18, 22, 36] }
     }
   };
   const DIAGRAMS = {};
@@ -1153,6 +1175,13 @@
         '<div class="color-rows' + (it.sized ? ' sized' : '') + '" id="colors-' + it.key + '" style="--cols: auto minmax(0, 1.5fr)' +
           (it.styles.length ? ' minmax(0, 1.1fr)' : '') + (it.sized ? ' minmax(0, 1fr) minmax(0, 0.8fr)' : '') + ' 88px 62px auto"></div>' +
         '<div class="color-foot"><button type="button" class="add-color" data-item="' + it.key + '">' + escT(txt(FORM.addLine, '+ Add another line')) + '</button>' +
+        (ITEMS.length > 1
+          ? '<div class="also-on" role="group" aria-label="Put your design on something else too"><span class="also-label">' + escT(txt(FORM.alsoOnLabel, 'Also put it on:')) + '</span>' +
+              ITEMS.filter(o => o.key !== it.key).map((o, i) =>
+                '<button type="button" class="also-btn" data-goto="' + o.key + '" data-from="' + it.key + '">' +
+                  iconSvg(ICON_COLORS[(ITEMS.indexOf(o)) % ICON_COLORS.length], o.picture) + '<span>' + escT(o.cardTitle) + '</span></button>').join('') +
+            '</div>'
+          : '') +
         '<span class="color-sum">' + escT(it.label) + ' total: <strong id="csum-' + it.key + '">0</strong></span></div>' +
       '</fieldset>' +
       '<fieldset class="group"><legend>' + escT(DIAGRAMS[it.key] ? txt(FORM.spotsQuestion, 'Where should the print go? Drag the tiki (or your uploaded design) onto the picture, or tap a spot below.') : txt(FORM.spotsQuestionNoPicture, 'Where should the print go? Pick all that apply.')) + '</legend>' +
@@ -1281,7 +1310,7 @@
   const designOf = t => t.art ? t.art.name : '';
   /* Real-world size: how many inches one unit of the 72 x 64 drawing is on that product.
      Designs can't be printed bigger than 12.5" wide x 24" tall. */
-  const IN_PER_UNIT = { tshirt: 0.45, hoodie: 0.45, bag: 0.35 };
+  const IN_PER_UNIT = { tshirt: 0.45, hoodie: 0.45, bag: 0.35, cup: 0.15 };
   const MAX_W_IN = 12.5, MAX_H_IN = 24;
   const unitIn = key => IN_PER_UNIT[(ITEM[key] || {}).picture] || 0.45;
   const maxS = (key, file) => Math.min(MAX_W_IN / unitIn(key), MAX_H_IN / unitIn(key) / artRatio(file), 60);
@@ -1690,6 +1719,8 @@
       if (again) again.focus();
       return;
     }
+    const go = e.target.closest('[data-goto]');
+    if (go) { goToItem(go.dataset.from, go.dataset.goto); return; }
     const unart = e.target.closest('.line-art-x');
     if (unart) {
       const row = unart.closest('.color-row');
@@ -1731,6 +1762,27 @@
     syncFiles(); // designs on items that were un-picked aren't sent
   }
   form.querySelectorAll('input[name="items"]').forEach(c => c.addEventListener('change', updateItem));
+  /* "Also put it on" a jacket, bag, tumbler...: opens that item's section, brings the
+     design along on its first open line so it's ready in the "drag me" box, and
+     scrolls to the picture to drag it on */
+  function goToItem(from, to) {
+    const pick = document.getElementById('it-' + to);
+    if (!pick.checked) { pick.checked = true; updateItem(); }
+    const mine = designsFor(from);
+    const art = mine.includes(TRAY_ART[from]) ? TRAY_ART[from] : mine[0];
+    if (art && !designsFor(to).includes(art)) {
+      const row = rowsOf(to).find(r => !LINE_ART.has(r)) || addColorRow(ITEM[to]);
+      setLineArt(row, art);
+    }
+    if (art && META.has(art)) TRAY_ART[to] = art;
+    afterArtChange();
+    const card = document.getElementById('card-' + to);
+    const target = document.getElementById('placer-' + to) || card;
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    card.classList.remove('is-arrived'); void card.offsetWidth; card.classList.add('is-arrived');
+    const tray = target.querySelector('.tray-tiki');
+    if (tray) tray.focus({ preventScroll: true });
+  }
   form.addEventListener('change', e => { if (/^(method|material)-/.test(e.target.name || '')) updateWarn(); });
   updateItem();
   updateTotals();
