@@ -88,9 +88,10 @@
   function itemsHtml(o) {
     return (o.items || []).map(it => {
       const lines = (it.lines || []).map(l => '<li>' + esc(l.qty) + ' x ' + esc([l.color, l.style, [l.fit, l.size].filter(Boolean).join(' ')].filter(Boolean).join(', ')) + '</li>').join('');
-      const spots = (it.placements || []).map(p => esc(p.spot) + (p.size ? ' (' + esc(p.size) + ')' : '')).join(', ');
+      const spots = (it.placements || []).map(p => esc(p.spot) + (p.design ? ': ' + esc(p.design) : '') + (p.size ? ' (' + esc(p.size) + ')' : '')).join(', ');
       return '<div class="item"><h3>' + esc(it.product) + ' (' + esc(it.total) + ')</h3>' +
         (lines ? '<ul>' + lines + '</ul>' : '') +
+        ((it.designs || []).length ? '<p>Design: ' + esc(it.designs.join(', ')) + '</p>' : '') +
         (spots ? '<p>Print on: ' + spots + '</p>' : '') +
         (it.method ? '<p>Print method: ' + esc(it.method) + '</p>' : '') + '</div>';
     }).join('');
