@@ -52,6 +52,14 @@ export default async (req) => {
       await orders.setJSON(id, order);
       return Response.json(order);
     }
+    // The shop's reply in the order's chat. The customer sees it on their quote page.
+    if (body.action === "reply") {
+      const text = String(body.text || "").trim().slice(0, 2000);
+      if (!text) return new Response("Type a message first", { status: 400 });
+      order.messages = [...(order.messages || []), { from: "shop", text, at: new Date().toISOString() }];
+      await orders.setJSON(id, order);
+      return Response.json(order);
+    }
     // Save the shop's price. The customer gets a private link (with order.key) to say yes or no.
     if (body.action === "quote") {
       const amount = parseFloat(String(body.price || "").replace(/[^0-9.]/g, ""));
