@@ -497,7 +497,7 @@
       '<div class="ed-files"><p class="section-label">Images on this order</p>' +
         '<div class="gallery" data-ed-gallery>' + designs.map(fileHtml).join('') + '</div>' +
         '<div class="send-row"><label class="btn">📎 Add image<input type="file" data-ed-upload multiple accept="image/*,.pdf,.ai,.eps,.svg,.psd" hidden></label></div>' +
-        '<p class="hint" data-ed-status>Tap 📎 on a line to add an image right to that line, or add images here and pick them in any line\'s Design box. Up to 4.5 MB each.</p></div>' +
+        '<p class="hint" data-ed-status>Tap 📎 on a line to add an image right to that line, or add images here and pick them in any line\'s Design box. Full-quality files (PDFs, PNGs) up to 60 MB.</p></div>' +
       '<div class="send-row"><button type="button" class="btn pink" data-ed-save>Save changes</button><button type="button" class="btn" data-ed-cancel>Cancel</button></div>' +
       '<p class="ed-err" data-ed-err hidden></p></div>';
   }
@@ -526,59 +526,53 @@
       }))
     };
   }
-  /* The website (Netlify) can only take about 4.5 MB per file. Bigger pictures get a smaller
-     copy so they still go on the order; your original file stays full size for printing. */
-  const FILE_LIMIT = 4.4 * 1024 * 1024;
-  async function fitImage(file) {
-    if (file.size <= FILE_LIMIT || !/^image\/(png|jpe?g|webp)$/.test(file.type)) return file;
-    let bmp;
-    try { bmp = await createImageBitmap(file); } catch (e) { return file; }
-    const long = Math.max(bmp.width, bmp.height);
-    const draw = (cap, type) => {
-      const k = Math.min(1, cap / long);
-      const c = document.createElement('canvas');
-      c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
-      const g = c.getContext('2d');
-      if (type === 'image/jpeg') { g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); }
-      g.drawImage(bmp, 0, 0, c.width, c.height);
-      return new Promise(r => c.toBlob(r, type, 0.9));
+  /* The website (Netlify) only takes about 4.5 MB per request, so bigger files (print-ready
+     PDFs, full-size PNGs) go up in 4 MB pieces and are joined back together on download.
+     Files keep their full quality. */
+  const PIECE = 4 * 1024 * 1024;
+  const MAX_FILE = 60 * 1024 * 1024;
+  const sendFile = async (order, file, progress) => {
+    const base = 'order-file?id=' + encodeURIComponent(order.id) + '&kind=art&name=' + encodeURIComponent(file.name);
+    const type = file.type || 'application/octet-stream';
+    const check = async res => {
+      if (res.status === 401) throw new Error('Your admin login expired. Open Edit my website, log in, then come back.');
+      if (!res.ok) throw new Error(res.status === 413 || res.status >= 500 ? 'The website couldn\'t take that file. Try again in a minute.' : await res.text());
+      return res.json();
     };
-    let out = null;
-    for (const cap of [4000, 3200, 2600, 2000, 1500]) {
-      // keep PNGs as PNG (see-through backgrounds) when they fit, otherwise use JPG
-      if (file.type === 'image/png') { out = await draw(cap, 'image/png'); if (out && out.size <= FILE_LIMIT) break; }
-      out = await draw(cap, 'image/jpeg'); if (out && out.size <= FILE_LIMIT) break;
+    if (file.size <= PIECE) return (await check(await authed(base, { method: 'POST', headers: { 'Content-Type': type }, body: file }))).upload;
+    const n = Math.ceil(file.size / PIECE);
+    let key = '';
+    for (let i = 0; i < n; i++) {
+      progress(i + 1, n);
+      const q = base + '&chunk=' + i + '&chunks=' + n + '&size=' + file.size + (key ? '&key=' + encodeURIComponent(key) : '');
+      const data = await check(await authed(q, { method: 'POST', headers: { 'Content-Type': type }, body: file.slice(i * PIECE, (i + 1) * PIECE) }));
+      key = data.key;
+      if (data.upload) return data.upload;
     }
-    bmp.close();
-    if (!out || out.size > FILE_LIMIT) return file;
-    return new File([out], file.name.replace(/\.\w+$/, '') + (out.type === 'image/png' ? '.png' : '.jpg'), { type: out.type });
-  }
-  // Uploads images to the order; returns the ones that made it.
-  // say(text, bad) also shows the progress next to the line's 📎 when adding from a line.
+    throw new Error('The last piece didn\'t arrive. Try again.');
+  };
+  // Uploads files to the order; returns the ones that made it.
+  // lineSay(text, bad) also shows the progress next to the line's 📎 when adding from a line.
   async function uploadToOrder(card, order, files, lineSay) {
     const status = card.querySelector('[data-ed-status]');
     const say = (t, bad) => {
       status.textContent = t; status.classList.toggle('ed-err', !!bad);
       if (lineSay) lineSay(t, bad);
     };
+    const mb = b => (b / 1048576).toFixed(1) + ' MB';
     const added = [];
     for (const [i, f] of [...files].entries()) {
-      say('Adding ' + f.name + (files.length > 1 ? ' (' + (i + 1) + ' of ' + files.length + ')' : '') + '...');
+      const which = files.length > 1 ? ' (' + (i + 1) + ' of ' + files.length + ')' : '';
+      say('Adding ' + f.name + which + '...');
       try {
-        const file = await fitImage(f);
-        const shrunk = file !== f;
-        if (file.size > FILE_LIMIT + 100 * 1024) throw new Error(f.name + ' is ' + (f.size / 1048576).toFixed(1) + ' MB. The most the website can take is 4.5 MB, so save a smaller copy (or a JPG) and try again.');
-        const res = await authed('order-file?id=' + encodeURIComponent(order.id) + '&kind=art&name=' + encodeURIComponent(file.name),
-          { method: 'POST', headers: { 'Content-Type': file.type || 'application/octet-stream' }, body: file });
-        if (res.status === 401) throw new Error('Your admin login expired. Open Edit my website, log in, then come back.');
-        if (!res.ok) throw new Error(res.status === 413 || res.status >= 500 ? 'That file is too big for the website. Save a smaller copy and try again.' : await res.text());
-        const { upload } = await res.json();
+        if (f.size > MAX_FILE) throw new Error(f.name + ' is ' + mb(f.size) + '. The most this can take is 60 MB.');
+        const upload = await sendFile(order, f, (p, n) => say('Uploading ' + f.name + which + ': piece ' + p + ' of ' + n + ' (' + mb(f.size) + ')...'));
         order.uploads = [...(order.uploads || []), upload];
         const gallery = card.querySelector('[data-ed-gallery]');
         gallery.insertAdjacentHTML('beforeend', fileHtml(upload));
         gallery.querySelectorAll('img[data-key]:not([src])').forEach(loadImage);
         card.querySelectorAll('[data-editor] select[data-f="design"]').forEach(s => s.insertAdjacentHTML('beforeend', opt(upload.name, upload.name, false)));
-        say('✓ Added ' + upload.name + (shrunk ? ' (made smaller to fit: ' + (f.size / 1048576).toFixed(1) + ' MB → ' + (file.size / 1048576).toFixed(1) + ' MB; print from your original)' : '') + '. Click Save changes when you\'re done.');
+        say('✓ Added ' + upload.name + ' (' + mb(f.size) + ', full quality). Click Save changes when you\'re done.');
         added.push(upload);
       } catch (err) {
         say('Couldn\'t add ' + f.name + '. ' + (err.message || 'Try again.'), true);
@@ -682,9 +676,16 @@
 
   async function fileBlob(key) {
     if (blobUrls.has(key)) return blobUrls.get(key);
-    const res = await authed('order-file-get?key=' + encodeURIComponent(key));
-    if (!res.ok) throw new Error('file ' + res.status);
-    const url = URL.createObjectURL(await res.blob());
+    // Big files are stored in pieces: fetch each one and join them back into the full file
+    const up = ORDERS.flatMap(o => o.uploads || []).find(u => u.key === key);
+    const get = async q => { const res = await authed('order-file-get?key=' + encodeURIComponent(key) + q); if (!res.ok) throw new Error('file ' + res.status); return res.blob(); };
+    let blob;
+    if (up && up.parts) {
+      const pieces = [];
+      for (let i = 0; i < up.parts; i++) pieces.push(await get('&part=' + i));
+      blob = new Blob(pieces, { type: up.type || 'application/octet-stream' });
+    } else blob = await get('');
+    const url = URL.createObjectURL(blob);
     blobUrls.set(key, url);
     return url;
   }
