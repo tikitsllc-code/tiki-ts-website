@@ -56,6 +56,37 @@ export default async (req) => {
       await orders.setJSON(id, order);
       return Response.json(order);
     }
+    // The shop edits what's on the order: contact info, items, lines, designs, notes.
+    // The customer's quote page shows the updated order.
+    if (body.action === "edit") {
+      const s = (v, n = 200) => String(v == null ? "" : v).trim().slice(0, n);
+      const name = s(body.name, 120), contact = s(body.contact, 200);
+      if (!name) return new Response("The order needs a name", { status: 400 });
+      const items = (Array.isArray(body.items) ? body.items : []).slice(0, 12).map((it) => {
+        const base = (order.items || [])[it.index] || {};
+        const lines = (Array.isArray(it.lines) ? it.lines : []).slice(0, 60).map((l) => ({
+          style: s(l.style), color: s(l.color), fit: s(l.fit), size: s(l.size),
+          qty: Math.max(0, Math.min(100000, parseInt(l.qty, 10) || 0)),
+          print: s(l.print, 40), design: s(l.design)
+        })).filter((l) => l.qty > 0);
+        return {
+          ...base,
+          product: s(it.product, 80) || base.product || "Item",
+          lines,
+          total: lines.reduce((t, l) => t + l.qty, 0),
+          designs: [...new Set(lines.map((l) => l.design).filter(Boolean))],
+          method: [...new Set(lines.map((l) => l.print).filter(Boolean))].join(", "),
+          notes: s(it.notes, 2000)
+        };
+      }).filter((it) => it.lines.length);
+      if (!items.length) return new Response("The order needs at least one line with a quantity", { status: 400 });
+      order.name = name;
+      order.contact = contact;
+      order.items = items;
+      order.editedAt = new Date().toISOString();
+      await orders.setJSON(id, order);
+      return Response.json(order);
+    }
     // The shop's reply in the order's chat. The customer sees it on their quote page.
     if (body.action === "reply") {
       const text = String(body.text || "").trim().slice(0, 2000);

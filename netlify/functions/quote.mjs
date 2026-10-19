@@ -5,6 +5,8 @@ import { getStore } from "@netlify/blobs";
 import { paymentsOn, stripe, syncPayment } from "../lib/stripe.mjs";
 
 const ID_PATTERN = /^\d{14}-[a-z0-9]{6}$/;
+const MAX_CHAT_FILES = 20;
+const MAX_CHAT_FILE_BYTES = 6 * 1024 * 1024;
 
 // What the customer is allowed to see about their own order
 const forCustomer = (o) => ({
@@ -18,7 +20,7 @@ const forCustomer = (o) => ({
   canPay: paymentsOn() && !!(o.quote && o.quote.amountCents),
   status: o.status,
   // The order's chat: the customer's messages and the shop's replies
-  messages: (o.messages || []).map((m) => ({ from: m.from === "shop" ? "shop" : "customer", text: m.text, at: m.at })),
+  messages: (o.messages || []).map((m) => ({ from: m.from === "shop" ? "shop" : "customer", text: m.text, at: m.at, file: m.file || null })),
   mockups: (o.uploads || []).filter((u) => u.kind === "mockup").map((u) => ({ key: u.key, name: u.name }))
 });
 
@@ -41,7 +43,8 @@ export default async (req) => {
   if (req.method === "GET") {
     const fileKey = url.searchParams.get("file");
     if (fileKey) {
-      const upload = (order.uploads || []).find((u) => u.key === fileKey && u.kind === "mockup");
+      // The customer can see their mockups and the pictures in their chat
+      const upload = (order.uploads || []).find((u) => u.key === fileKey && (u.kind === "mockup" || u.kind === "chat"));
       if (!upload) return notFound();
       const data = await getStore({ name: "order-files", consistency: "strong" }).get(fileKey, { type: "arrayBuffer" });
       if (!data) return notFound();
@@ -58,6 +61,27 @@ export default async (req) => {
       } catch (err) { /* Stripe hiccup: show the page anyway */ }
     }
     return Response.json({ ...forCustomer(order), justPaid });
+  }
+
+  if (req.method === "POST" && url.searchParams.get("upload")) {
+    // A picture the customer attaches in the chat
+    const chatFiles = (order.uploads || []).filter((u) => u.kind === "chat").length;
+    if (chatFiles >= MAX_CHAT_FILES) return new Response("That's the most pictures we can take here. Please email any others.", { status: 400 });
+    const type = (req.headers.get("content-type") || "").slice(0, 100);
+    if (!/^image\/(png|jpe?g|gif|webp|heic|heif)$/i.test(type)) return new Response("Please attach a picture (JPG, PNG, GIF or WEBP).", { status: 400 });
+    const data = await req.arrayBuffer();
+    if (!data.byteLength) return new Response("That picture was empty", { status: 400 });
+    if (data.byteLength > MAX_CHAT_FILE_BYTES) return new Response("That picture is too big. Please try a smaller one.", { status: 413 });
+    const name = (url.searchParams.get("name") || "picture").replace(/[^\w.\- ]+/g, "_").slice(0, 100) || "picture";
+    const key = id + "/" + ((order.uploads || []).length + 1) + "-" + name;
+    await getStore({ name: "order-files", consistency: "strong" }).set(key, data, { metadata: { name, kind: "chat", type } });
+    order.uploads = [...(order.uploads || []), { key, name, kind: "chat", type, size: data.byteLength }];
+    order.messages = [...(order.messages || []), {
+      from: "customer", text: String(url.searchParams.get("text") || "").trim().slice(0, 1000),
+      file: { key, name, type }, at: new Date().toISOString()
+    }];
+    await orders.setJSON(id, order);
+    return Response.json(forCustomer(order));
   }
 
   if (req.method === "POST") {
