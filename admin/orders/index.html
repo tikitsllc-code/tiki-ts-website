@@ -123,8 +123,13 @@
   .ed-item { border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 10px; background: #fff; }
   .ed-item legend { font-weight: 900; padding: 0 6px; }
   .ed-lines { display: grid; gap: 8px; }
-  .ed-line { display: grid; grid-template-columns: 70px repeat(4, minmax(0, 1fr)) 110px minmax(0, 1.4fr) auto; gap: 8px; align-items: end; padding: 8px; border: 1px dashed var(--line); border-radius: 10px; }
+  .ed-line { display: grid; grid-template-columns: 64px repeat(4, minmax(0, 1fr)) 100px minmax(0, 2fr) auto; gap: 8px; align-items: end; padding: 8px; border: 1px dashed var(--line); border-radius: 10px; }
   .ed-x { padding: 8px 12px; }
+  .ed-other { margin-top: 4px; }
+  .ed-other[hidden] { display: none; }
+  .ed-design { display: flex; gap: 6px; }
+  .ed-design select { flex: 1; min-width: 0; }
+  .ed-pic { padding: 6px 10px; flex: none; }
   .ed-files { display: grid; gap: 8px; }
   .ed-files .section-label { margin: 0; }
   .ed-err { margin: 0; color: var(--pink); font-weight: 800; }
@@ -410,30 +415,67 @@
      the order here and on their quote page. */
   const editingOrder = new Set();
   const PRINTS = ['DTF', 'Dye sub'];
+  /* The same lists the customer picks from on the order form: they come from the site's
+     content files (edited at /admin), with these as a backup if those can't load. */
+  const CATALOG = {
+    colors: ['White', 'Black', 'Heather gray', 'Charcoal', 'Navy', 'Royal blue', 'Light blue', 'Teal', 'Red', 'Maroon',
+      'Pink', 'Hot pink', 'Purple', 'Kelly green', 'Forest green', 'Yellow', 'Orange', 'Tan', 'Brown'],
+    fits: [{ name: "Men's", sizes: ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'] }, { name: "Women's", sizes: ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'] },
+      { name: 'Kids', sizes: ['XS', 'S', 'M', 'L', 'XL'] }],
+    items: [{ name: 'T-shirts', styles: ['Round neck', 'V-neck', 'Polo', 'Long sleeve', 'Tank top'], colors: [] },
+      { name: 'Hoodies or jackets', styles: [], colors: [] }, { name: 'Bags', styles: [], colors: [] }, { name: 'Cups or tumblers', styles: [], colors: [] }]
+  };
+  (async () => {
+    const get = async url => { try { const r = await fetch(url, { cache: 'no-cache' }); return r.ok ? await r.json() : null; } catch (e) { return null; } };
+    const [legacy, colors, sizes, products] = await Promise.all(['/content.json', '/content/colors.json', '/content/sizes.json', '/content/products.json'].map(get));
+    const all = Object.assign({}, legacy || {}, colors || {}, sizes || {}, products || {});
+    const names = v => (Array.isArray(v) ? v : []).map(x => String(x && typeof x === 'object' ? x.name || '' : x || '').trim()).filter(Boolean);
+    if (names(all.colors).length) CATALOG.colors = names(all.colors);
+    const fits = (Array.isArray(all.fits) ? all.fits : []).filter(f => f && f.name && names(f.sizes).length);
+    if (fits.length) CATALOG.fits = fits.map(f => ({ name: String(f.name), sizes: names(f.sizes) }));
+    const items = (Array.isArray(all.items) ? all.items : []).filter(it => it && it.name && it.show !== false);
+    if (items.length) CATALOG.items = items.map(it => ({ name: String(it.name), styles: names(it.styles), colors: names(it.colors) }));
+  })();
+  const itemInfo = name => CATALOG.items.find(i => i.name === name) || { styles: [], colors: [] };
+  const sizesFor = fit => { const f = CATALOG.fits.find(x => x.name === fit); return f ? f.sizes : [...new Set(CATALOG.fits.flatMap(x => x.sizes))]; };
+
   const opt = (value, label, on) => '<option value="' + esc(value) + '"' + (on ? ' selected' : '') + '>' + esc(label) + '</option>';
   const edField = (label, html) => '<label class="ed-field"><span>' + label + '</span>' + html + '</label>';
   const edInput = (f, v, extra) => '<input data-f="' + f + '" value="' + esc(v == null ? '' : v) + '"' + (extra || '') + '>';
-  function edLineHtml(o, l) {
+  // A dropdown of the usual choices, plus "Other..." to type anything else.
+  // A value that isn't in the list (from an older order) stays picked.
+  const OTHER = '__other';
+  const edPick = (f, v, list, empty) => {
+    v = v == null ? '' : String(v);
+    return '<select data-f="' + f + '">' + opt('', empty, !v) + list.map(x => opt(x, x, x === v)).join('') +
+      (v && !list.includes(v) ? opt(v, v, true) : '') + opt(OTHER, 'Other...', false) + '</select>' +
+      '<input class="ed-other" data-other="' + f + '" placeholder="Type it" hidden>';
+  };
+  function edLineHtml(o, l, product) {
     l = l || {};
+    const info = itemInfo(product);
     const designs = (o.uploads || []).filter(isDesignFile);
     const cur = artFor(o, l.design);
     return '<div class="ed-line">' +
       edField('Qty', edInput('qty', l.qty || '', ' type="number" min="0" inputmode="numeric"')) +
-      edField('Color', edInput('color', l.color)) +
-      edField('Style', edInput('style', l.style)) +
-      edField('Fit', edInput('fit', l.fit)) +
-      edField('Size', edInput('size', l.size)) +
+      edField('Color', edPick('color', l.color, info.colors.length ? info.colors : CATALOG.colors, 'Pick one')) +
+      edField('Style', edPick('style', l.style, info.styles, 'Style')) +
+      edField('Fit', edPick('fit', l.fit, CATALOG.fits.map(f => f.name), 'Fit')) +
+      edField('Size', edPick('size', l.size, sizesFor(l.fit), 'Size')) +
       edField('Print', '<select data-f="print">' + opt('', 'Pick one', !l.print) + PRINTS.map(p => opt(p, p, l.print === p)).join('') +
         (l.print && !PRINTS.includes(l.print) ? opt(l.print, l.print, true) : '') + '</select>') +
-      edField('Design', '<select data-f="design">' + opt('', 'No design', !l.design) +
+      // a plain box (not a label) so the 📎 button inside it opens its own file picker
+      '<div class="ed-field"><span>Design</span><div class="ed-design"><select data-f="design" aria-label="Design">' + opt('', 'No design', !l.design) +
         designs.map(u => opt(u.name, u.name, cur === u)).join('') +
-        (l.design && !cur ? opt(l.design, l.design + ' (file missing)', true) : '') + '</select>') +
+        (l.design && !cur ? opt(l.design, l.design + ' (file missing)', true) : '') + '</select>' +
+        '<label class="btn ed-pic" title="Add an image for this line">📎<input type="file" data-ed-line-upload accept="image/*,.pdf,.ai,.eps,.svg,.psd" hidden></label></div></div>' +
       '<button type="button" class="btn ed-x" data-ed-remove-line aria-label="Remove this line">✕</button></div>';
   }
   function edItemHtml(o, it, index) {
+    const known = CATALOG.items.map(i => i.name);
     return '<fieldset class="ed-item" data-index="' + index + '"><legend>Item</legend>' +
-      edField('What it is (T-shirts, Hoodies...)', edInput('product', it.product)) +
-      '<div class="ed-lines">' + ((it.lines || []).length ? it.lines.map(l => edLineHtml(o, l)).join('') : edLineHtml(o)) + '</div>' +
+      edField('What it is', edPick('product', it.product, known, 'Pick one')) +
+      '<div class="ed-lines">' + ((it.lines || []).length ? it.lines.map(l => edLineHtml(o, l, it.product)).join('') : edLineHtml(o, null, it.product)) + '</div>' +
       '<div class="send-row"><button type="button" class="btn" data-ed-add-line>+ Add line</button>' +
       '<button type="button" class="btn danger" data-ed-remove-item>Remove this item</button></div>' +
       edField('Design details / where the print goes', '<textarea data-f="notes" rows="3">' + esc(it.notes || '') + '</textarea>') +
@@ -450,29 +492,39 @@
       '<div class="ed-files"><p class="section-label">Images on this order</p>' +
         '<div class="gallery" data-ed-gallery>' + designs.map(fileHtml).join('') + '</div>' +
         '<div class="send-row"><label class="btn">📎 Add image<input type="file" data-ed-upload multiple accept="image/*,.pdf,.ai,.eps,.svg,.psd" hidden></label></div>' +
-        '<p class="hint" data-ed-status>Images you add can be picked in the Design box on any line. Up to 4.5 MB each.</p></div>' +
+        '<p class="hint" data-ed-status>Tap 📎 on a line to add an image right to that line, or add images here and pick them in any line\'s Design box. Up to 4.5 MB each.</p></div>' +
       '<div class="send-row"><button type="button" class="btn pink" data-ed-save>Save changes</button><button type="button" class="btn" data-ed-cancel>Cancel</button></div>' +
       '<p class="ed-err" data-ed-err hidden></p></div>';
   }
+  // A box's value: the dropdown choice, or what was typed after picking "Other..."
+  const edVal = (root, f) => {
+    const el = root.querySelector('[data-f="' + f + '"]');
+    if (!el) return '';
+    if (el.value !== OTHER) return el.value;
+    const other = root.querySelector('[data-other="' + f + '"]');
+    return other ? other.value.trim() : '';
+  };
+  const lineData = r => ({
+    qty: edVal(r, 'qty'), color: edVal(r, 'color'), style: edVal(r, 'style'), fit: edVal(r, 'fit'), size: edVal(r, 'size'),
+    print: edVal(r, 'print'), design: edVal(r, 'design')
+  });
   function collectEdit(card) {
     const ed = card.querySelector('[data-editor]');
-    const val = (root, f) => { const el = root.querySelector('[data-f="' + f + '"]'); return el ? el.value : ''; };
     return {
       name: ed.querySelector('[data-ed="name"]').value,
       contact: ed.querySelector('[data-ed="contact"]').value,
       items: [...ed.querySelectorAll('.ed-item')].map(f => ({
         index: +f.dataset.index,
-        product: val(f, 'product'),
-        notes: val(f, 'notes'),
-        lines: [...f.querySelectorAll('.ed-line')].map(r => ({
-          qty: val(r, 'qty'), color: val(r, 'color'), style: val(r, 'style'), fit: val(r, 'fit'), size: val(r, 'size'),
-          print: val(r, 'print'), design: val(r, 'design')
-        }))
+        product: edVal(f.querySelector('.ed-field'), 'product'),
+        notes: edVal(f, 'notes'),
+        lines: [...f.querySelectorAll('.ed-line')].map(lineData)
       }))
     };
   }
+  // Uploads images to the order; returns the ones that made it
   async function uploadToOrder(card, order, files) {
     const status = card.querySelector('[data-ed-status]');
+    const added = [];
     for (const [i, f] of [...files].entries()) {
       status.textContent = 'Adding ' + f.name + (files.length > 1 ? ' (' + (i + 1) + ' of ' + files.length + ')' : '') + '...';
       // The website can only take about 4.5 MB per file (Netlify's limit)
@@ -488,10 +540,12 @@
         gallery.querySelectorAll('img[data-key]:not([src])').forEach(loadImage);
         card.querySelectorAll('[data-editor] select[data-f="design"]').forEach(s => s.insertAdjacentHTML('beforeend', opt(upload.name, upload.name, false)));
         status.textContent = 'Added ' + upload.name + '. Pick it in the Design box on a line, then Save changes.';
+        added.push(upload);
       } catch (err) {
         status.textContent = 'Couldn\'t add ' + f.name + '. ' + (err.message || 'Try again.');
       }
     }
+    return added;
   }
 
   /* ---------- Chat with the customer ----------
@@ -642,7 +696,8 @@
     }
     if (e.target.closest('[data-ed-cancel]')) { editingOrder.delete(id); render(); return; }
     if (e.target.closest('[data-ed-add-line]')) {
-      e.target.closest('.ed-item').querySelector('.ed-lines').insertAdjacentHTML('beforeend', edLineHtml(order));
+      const item = e.target.closest('.ed-item');
+      item.querySelector('.ed-lines').insertAdjacentHTML('beforeend', edLineHtml(order, null, edVal(item.querySelector('.ed-field'), 'product')));
       return;
     }
     if (e.target.closest('[data-ed-remove-line]')) { e.target.closest('.ed-line').remove(); return; }
@@ -773,11 +828,40 @@
     btn.disabled = false; btn.textContent = 'Send';
     box.focus();
   }
-  // Edit order: images picked with "Add image" go straight onto the order
+  // Edit order: dropdowns, "Other...", and images
   document.getElementById('orders').addEventListener('change', e => {
-    if (!e.target.matches('[data-ed-upload]') || !e.target.files.length) return;
-    const card = e.target.closest('.order');
-    uploadToOrder(card, ORDERS.find(o => o.id === card.dataset.id), e.target.files).then(() => { e.target.value = ''; });
+    const t = e.target;
+    const card = t.closest('.order');
+    if (!card || !t.closest('[data-editor]')) return;
+    const order = ORDERS.find(o => o.id === card.dataset.id);
+    // "Other..." shows a box to type in
+    if (t.matches('select[data-f]')) {
+      const other = t.parentElement.querySelector('[data-other="' + t.dataset.f + '"]');
+      if (other) { other.hidden = t.value !== OTHER; if (!other.hidden) other.focus(); }
+    }
+    // A different fit has its own sizes
+    if (t.matches('select[data-f="fit"]')) {
+      const line = t.closest('.ed-line');
+      const size = line.querySelector('select[data-f="size"]');
+      const keep = edVal(line, 'size');
+      size.closest('.ed-field').outerHTML = edField('Size', edPick('size', keep, sizesFor(edVal(line, 'fit')), 'Size'));
+    }
+    // A different item has its own colors and styles
+    if (t.matches('select[data-f="product"]') && t.value !== OTHER) {
+      const item = t.closest('.ed-item');
+      item.querySelectorAll('.ed-line').forEach(line => { line.outerHTML = edLineHtml(order, lineData(line), t.value); });
+    }
+    // Images: "Add image" goes onto the order; 📎 on a line also puts it on that line
+    if (t.matches('[data-ed-upload], [data-ed-line-upload]') && t.files.length) {
+      const line = t.closest('.ed-line');
+      uploadToOrder(card, order, t.files).then(added => {
+        t.value = '';
+        if (line && added.length) {
+          line.querySelector('select[data-f="design"]').value = added[0].name;
+          card.querySelector('[data-ed-status]').textContent = 'Added ' + added[0].name + ' to that line. Click Save changes when you\'re done.';
+        }
+      });
+    }
   });
   // Enter sends, Shift+Enter makes a new line
   document.getElementById('orders').addEventListener('keydown', e => {
