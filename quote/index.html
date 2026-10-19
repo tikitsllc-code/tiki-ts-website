@@ -56,6 +56,11 @@
   .btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
   .yes { background: var(--pink); color: #fff; }
   .no { background: #fff; color: var(--ink); }
+  .send { background: var(--teal); color: var(--ink); }
+  .sent { display: grid; gap: 8px; }
+  .bubble { margin: 0; padding: 10px 12px; background: #fff; border: 2px solid var(--line); border-radius: 12px; white-space: pre-wrap; }
+  .bubble small { display: block; margin-top: 4px; color: var(--soft); font-size: 0.8rem; }
+  .small.sent-ok { color: var(--green); font-weight: 800; }
   .btn:disabled { opacity: 0.6; cursor: default; }
   .done-box { text-align: center; }
   .done-box h2 { margin: 0 0 6px; }
@@ -84,6 +89,7 @@
   const firstName = n => String(n || '').trim().split(/\s+/)[0] || 'there';
   const money = c => '$' + (c / 100).toFixed(2);
   const fmtDate = iso => new Date(iso).toLocaleDateString(undefined, { month: 'long', day: 'numeric' });
+  const fmtWhen = iso => fmtDate(iso) + ' at ' + new Date(iso).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 
   function itemsHtml(o) {
     return (o.items || []).map(it => {
@@ -110,17 +116,57 @@
       '<section class="card"><h2 style="margin:0 0 10px">Your order</h2>' + itemsHtml(o) +
         (o.mockups.length ? '<div class="mockups">' + o.mockups.map(m => '<img alt="Where your design goes" src="' + API + '&file=' + encodeURIComponent(m.key) + '">').join('') + '</div>' : '') +
       '</section>' +
+      messageHtml(o) +
       (answered ? answeredHtml(o) :
-        '<section class="card answer"><label for="msg">Anything you want to tell us? (optional)</label>' +
-        '<textarea id="msg" placeholder="Questions, changes, when you need it..."></textarea>' +
-        (saidYesUnpaid ? '<p style="margin:0;font-weight:800">You said yes! Finish paying below and we\'ll start on your order.</p>' : '') +
+        '<section class="card answer">' +
+        (saidYesUnpaid ? '<p style="margin:0;font-weight:800">You said yes! Finish paying below and we\'ll start on your order.</p>' : '<h2 style="margin:0">Ready to go?</h2>') +
         '<div class="buttons"><button class="btn yes" id="yes" type="button">' + (o.canPay ? 'Yes, pay now (' + esc(o.quote.price) + ')' : 'Yes, let\'s do it!') + '</button>' +
         '<button class="btn no" id="no" type="button">No thanks</button></div>' +
         '<p class="error" id="err" hidden></p>' +
         '<p class="small">' + (o.canPay ? 'You\'ll pay securely by card on the next page. Nothing gets printed until it\'s paid.' : 'Nothing gets printed until you say yes.') + '</p></section>');
+    document.getElementById('send').addEventListener('click', () => sendMessage(o));
     if (!answered) {
       document.getElementById('yes').addEventListener('click', () => answer('accept', o));
       document.getElementById('no').addEventListener('click', () => answer('decline', o));
+    }
+  }
+  // Questions or changes can be sent any time, without saying yes or paying
+  function messageHtml(o) {
+    const sent = o.messages || [];
+    return '<section class="card answer"><label for="msg">Questions or changes? Message us</label>' +
+      '<textarea id="msg" placeholder="Questions, changes, when you need it..."></textarea>' +
+      '<div class="buttons"><button class="btn send" id="send" type="button">Send message</button></div>' +
+      '<p class="small" id="msg-status" role="status" hidden></p>' +
+      (sent.length ? '<div class="sent"><p class="small" style="margin:0">Messages you sent us:</p>' +
+        sent.map(m => '<p class="bubble">' + esc(m.text) + '<small>' + esc(fmtWhen(m.at)) + '</small></p>').join('') + '</div>' : '') +
+      '</section>';
+  }
+  async function sendMessage(o) {
+    const box = document.getElementById('msg');
+    const btn = document.getElementById('send');
+    const status = document.getElementById('msg-status');
+    const text = box.value.trim();
+    const say = (t, bad) => { status.textContent = t; status.className = bad ? 'error' : 'small'; status.hidden = false; };
+    if (!text) { say('Type your message first.', true); box.focus(); return; }
+    btn.disabled = true; btn.textContent = 'Sending...';
+    try {
+      const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'message', message: text }) });
+      if (!res.ok) throw new Error(await res.text());
+      // short email alert to the shop
+      const fd = new FormData();
+      fd.append('form-name', 'quote-response');
+      fd.append('bot-field', '');
+      fd.append('subject', 'Message from ' + o.name + ' about their quote');
+      fd.append('name', o.name);
+      fd.append('answer', 'New message (no answer yet). See it on your Orders page: ' + location.origin + '/admin/orders/');
+      fd.append('message', text);
+      fetch('/', { method: 'POST', body: fd }).catch(() => {});
+      render(await res.json());
+      const after = document.getElementById('msg-status');
+      after.textContent = 'Sent! We\'ll get back to you soon.'; after.className = 'small sent-ok'; after.hidden = false;
+    } catch (e) {
+      btn.disabled = false; btn.textContent = 'Send message';
+      say(e.message && e.message.length < 120 ? e.message : 'That didn\'t go through. Please try again.', true);
     }
   }
   function answeredHtml(o) {
