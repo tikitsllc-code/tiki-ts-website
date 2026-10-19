@@ -87,6 +87,13 @@ export default async (req) => {
       await orders.setJSON(id, order);
       return Response.json(order);
     }
+    // The shop sent the customer the updated quote after editing the order
+    if (body.action === "resent") {
+      if (!order.quote) return new Response("No price yet", { status: 400 });
+      order.quote.resentAt = new Date().toISOString();
+      await orders.setJSON(id, order);
+      return Response.json(order);
+    }
     // The shop's reply in the order's chat. The customer sees it on their quote page.
     if (body.action === "reply") {
       const text = String(body.text || "").trim().slice(0, 2000);

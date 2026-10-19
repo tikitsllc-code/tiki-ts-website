@@ -6,7 +6,7 @@ import { paymentsOn, stripe, syncPayment } from "../lib/stripe.mjs";
 
 const ID_PATTERN = /^\d{14}-[a-z0-9]{6}$/;
 const MAX_CHAT_FILES = 20;
-const MAX_CHAT_FILE_BYTES = 6 * 1024 * 1024;
+const MAX_CHAT_FILE_BYTES = 4.5 * 1024 * 1024; // Netlify functions take about 4.5 MB of file per request
 
 // What the customer is allowed to see about their own order
 const forCustomer = (o) => ({
