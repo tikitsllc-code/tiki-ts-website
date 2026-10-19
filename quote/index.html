@@ -65,7 +65,10 @@
   .bubble.them { align-self: flex-start; background: #fff; border: 2px solid var(--teal); border-bottom-left-radius: 4px; }
   .bubble.me { align-self: flex-end; background: var(--pink); color: #fff; border-bottom-right-radius: 4px; }
   .attach { display: inline-flex; align-items: center; }
-  .attach.busy { opacity: 0.6; pointer-events: none; }
+  .pic-preview { display: flex; align-items: center; gap: 10px; padding: 8px; border: 2px dashed var(--pink); border-radius: 12px; background: #fff; }
+  .pic-preview img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; flex: none; }
+  .pic-preview span { flex: 1; min-width: 0; overflow-wrap: anywhere; font-weight: 600; font-size: 0.9rem; }
+  .pic-x { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--ink); background: #fff; font: 900 1rem/1 sans-serif; cursor: pointer; }
   .chat-pic img { display: block; max-width: 100%; max-height: 260px; border-radius: 10px; background: #fff; margin-top: 2px; }
   .small.sent-ok { color: var(--green); font-weight: 800; }
   .btn:disabled { opacity: 0.6; cursor: default; }
@@ -134,7 +137,8 @@
     LAST = o;
     showChat(o.messages || []);
     document.getElementById('send').addEventListener('click', () => sendMessage(o));
-    document.getElementById('pic').addEventListener('change', e => { if (e.target.files[0]) sendPicture(o, e.target.files[0]); });
+    document.getElementById('pic').addEventListener('change', e => { if (e.target.files[0]) pickPicture(e.target.files[0]); e.target.value = ''; });
+    document.getElementById('pic-remove').addEventListener('click', () => pickPicture(null));
     // Enter sends, Shift+Enter makes a new line
     document.getElementById('msg').addEventListener('keydown', e => {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(o); }
@@ -156,6 +160,8 @@
     return '<section class="card answer"><h2 style="margin:0">Questions or changes? Chat with us</h2>' +
       '<div class="chat-log" id="chat-log"' + (msgs.length ? '' : ' hidden') + '>' + chatLogHtml(msgs) + '</div>' +
       '<label for="msg" class="small" style="font-weight:600">Your message</label>' +
+      '<div class="pic-preview" id="pic-preview" hidden><img id="pic-thumb" alt="Picture to send"><span id="pic-name"></span>' +
+        '<button type="button" class="pic-x" id="pic-remove" aria-label="Remove this picture">✕</button></div>' +
       '<textarea id="msg" placeholder="Questions, changes, when you need it..."></textarea>' +
       '<div class="buttons"><button class="btn send" id="send" type="button">Send message</button>' +
         '<label class="btn no attach">📎 Add a picture<input type="file" id="pic" accept="image/*" hidden></label></div>' +
@@ -183,55 +189,55 @@
   }
   setInterval(checkReplies, 10000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) checkReplies(); });
-  /* A picture in the chat. Big phone photos are shrunk first so they fit the 6 MB limit. */
+  /* A picture in the chat. The website can only take about 4 MB per upload, so pictures
+     are shrunk until they fit (big PNGs become JPGs if they have to). */
+  const PIC_LIMIT = 4 * 1024 * 1024;
   async function shrinkPicture(file) {
-    if (!/^image\/(png|jpe?g|webp)$/.test(file.type)) return file;
+    if (file.size <= PIC_LIMIT && !/^image\/(png|jpe?g|webp)$/.test(file.type)) return file; // GIFs etc. go as they are
     let bmp;
     try { bmp = await createImageBitmap(file); } catch (e) { return file; }
     const long = Math.max(bmp.width, bmp.height);
-    if (file.size <= 5 * 1024 * 1024 && long <= 3000) { bmp.close(); return file; }
-    const k = Math.min(1, 3000 / long);
-    const c = document.createElement('canvas');
-    c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
-    const g = c.getContext('2d');
-    const png = file.type === 'image/png' && file.size <= 12 * 1024 * 1024; // keep see-through backgrounds when it can
-    if (!png) { g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); }
-    g.drawImage(bmp, 0, 0, c.width, c.height); bmp.close();
-    const blob = await new Promise(r => c.toBlob(r, png ? 'image/png' : 'image/jpeg', 0.88));
-    if (!blob) return file;
-    return new File([blob], png ? file.name : file.name.replace(/\.\w+$/, '') + '.jpg', { type: blob.type });
-  }
-  async function sendPicture(o, file) {
-    const box = document.getElementById('msg');
-    const status = document.getElementById('msg-status');
-    const label = document.querySelector('.attach');
-    const say = (t, bad) => { status.textContent = t; status.className = bad ? 'error' : 'small'; status.hidden = false; };
-    if (!/^image\//.test(file.type)) { say('Please pick a picture (JPG, PNG, GIF or WEBP).', true); return; }
-    label.classList.add('busy'); say('Sending your picture...');
-    try {
-      const pic = await shrinkPicture(file);
-      if (pic.size > 6 * 1024 * 1024) throw new Error('That picture is too big. Please try a smaller one.');
-      const caption = box.value.trim();
-      const res = await fetch(API + '&upload=1&name=' + encodeURIComponent(pic.name) + '&text=' + encodeURIComponent(caption),
-        { method: 'POST', headers: { 'Content-Type': pic.type }, body: pic });
-      if (!res.ok) throw new Error(await res.text());
-      // short email alert to the shop
-      const fd = new FormData();
-      fd.append('form-name', 'quote-response');
-      fd.append('bot-field', '');
-      fd.append('subject', 'Picture from ' + o.name + ' about their quote');
-      fd.append('name', o.name);
-      fd.append('answer', 'They sent a picture in the chat. See it on your Orders page: ' + location.origin + '/admin/orders/');
-      fd.append('message', caption);
-      fetch('/', { method: 'POST', body: fd }).catch(() => {});
-      render(await res.json());
-      const after = document.getElementById('msg-status');
-      after.textContent = 'Picture sent!'; after.className = 'small sent-ok'; after.hidden = false;
-    } catch (e) {
-      label.classList.remove('busy');
-      say(e.message && e.message.length < 140 ? e.message : 'That picture didn\'t go through. Please try again.', true);
+    if (file.size <= PIC_LIMIT && long <= 3000) { bmp.close(); return file; }
+    const draw = async (cap, type) => {
+      const k = Math.min(1, cap / long);
+      const c = document.createElement('canvas');
+      c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+      const g = c.getContext('2d');
+      if (type === 'image/jpeg') { g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); }
+      g.drawImage(bmp, 0, 0, c.width, c.height);
+      return new Promise(r => c.toBlob(r, type, 0.85));
+    };
+    let out = null;
+    for (const cap of [3000, 2400, 1800, 1400, 1000]) {
+      // keep PNGs as PNG (see-through backgrounds) when they fit, otherwise use JPG
+      if (file.type === 'image/png') { out = await draw(cap, 'image/png'); if (out && out.size <= PIC_LIMIT) break; }
+      out = await draw(cap, 'image/jpeg'); if (out && out.size <= PIC_LIMIT) break;
     }
+    bmp.close();
+    if (!out) return file;
+    const ext = out.type === 'image/png' ? '.png' : '.jpg';
+    return new File([out], file.name.replace(/\.\w+$/, '') + ext, { type: out.type });
   }
+  // The picture waiting to go with the next "Send message"
+  let PENDING_PIC = null;
+  function pickPicture(file) {
+    const status = document.getElementById('msg-status');
+    const box = document.getElementById('pic-preview');
+    if (file && !/^image\//.test(file.type)) {
+      status.textContent = 'Please pick a picture (JPG, PNG, GIF or WEBP).'; status.className = 'error'; status.hidden = false;
+      return;
+    }
+    if (box.dataset.url) URL.revokeObjectURL(box.dataset.url);
+    PENDING_PIC = file;
+    box.hidden = !file;
+    if (!file) { delete box.dataset.url; return; }
+    box.dataset.url = URL.createObjectURL(file);
+    document.getElementById('pic-thumb').src = box.dataset.url;
+    document.getElementById('pic-name').textContent = file.name;
+    status.textContent = 'Picture ready. Add a message if you want, then tap Send message.'; status.className = 'small'; status.hidden = false;
+    document.getElementById('msg').focus();
+  }
+  // Sends the typed message, the picked picture, or both together
   async function sendMessage(o) {
     const box = document.getElementById('msg');
     const btn = document.getElementById('send');
@@ -239,26 +245,40 @@
     if (btn.disabled) return; // already sending
     const text = box.value.trim();
     const say = (t, bad) => { status.textContent = t; status.className = bad ? 'error' : 'small'; status.hidden = false; };
-    if (!text) { say('Type your message first.', true); box.focus(); return; }
+    if (!text && !PENDING_PIC) { say('Type a message or add a picture first.', true); box.focus(); return; }
     btn.disabled = true; btn.textContent = 'Sending...';
     try {
-      const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'message', message: text }) });
-      if (!res.ok) throw new Error(await res.text());
+      let res;
+      if (PENDING_PIC) {
+        say('Sending your picture...');
+        const pic = await shrinkPicture(PENDING_PIC);
+        if (pic.size > PIC_LIMIT + 400 * 1024) throw new Error('That picture is too big to send. Please try a smaller one, or email it to us.');
+        res = await fetch(API + '&upload=1&name=' + encodeURIComponent(pic.name) + '&text=' + encodeURIComponent(text),
+          { method: 'POST', headers: { 'Content-Type': pic.type || 'image/jpeg' }, body: pic });
+      } else {
+        res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'message', message: text }) });
+      }
+      if (!res.ok) {
+        const why = res.status === 413 || res.status >= 500 ? 'That picture is too big to send. Please try a smaller one, or email it to us.' : await res.text();
+        throw new Error(why);
+      }
       // short email alert to the shop
       const fd = new FormData();
       fd.append('form-name', 'quote-response');
       fd.append('bot-field', '');
-      fd.append('subject', 'Message from ' + o.name + ' about their quote');
+      fd.append('subject', (PENDING_PIC ? 'Picture' : 'Message') + ' from ' + o.name + ' about their quote');
       fd.append('name', o.name);
-      fd.append('answer', 'New message (no answer yet). See it on your Orders page: ' + location.origin + '/admin/orders/');
+      fd.append('answer', (PENDING_PIC ? 'They sent a picture in the chat.' : 'New message (no answer yet).') + ' See it on your Orders page: ' + location.origin + '/admin/orders/');
       fd.append('message', text);
       fetch('/', { method: 'POST', body: fd }).catch(() => {});
+      const sentPic = !!PENDING_PIC;
+      PENDING_PIC = null;
       render(await res.json());
       const after = document.getElementById('msg-status');
-      after.textContent = 'Sent! We\'ll get back to you soon.'; after.className = 'small sent-ok'; after.hidden = false;
+      after.textContent = sentPic ? 'Picture sent! We\'ll get back to you soon.' : 'Sent! We\'ll get back to you soon.'; after.className = 'small sent-ok'; after.hidden = false;
     } catch (e) {
       btn.disabled = false; btn.textContent = 'Send message';
-      say(e.message && e.message.length < 120 ? e.message : 'That didn\'t go through. Please try again.', true);
+      say(e.message && e.message.length < 160 ? e.message : 'That didn\'t go through. Please try again.', true);
     }
   }
   function answeredHtml(o) {
