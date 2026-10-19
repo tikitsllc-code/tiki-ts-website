@@ -113,6 +113,23 @@
   .their-msg small { display: block; margin-top: 4px; color: var(--soft); font-size: 0.8rem; }
   .msg-count { background: var(--teal); color: var(--ink); font-weight: 900; font-size: 0.8rem; border-radius: 999px; padding: 3px 10px; }
   .msg-count.new { background: var(--pink); color: #fff; }
+  /* Edit order */
+  .editor { display: grid; gap: 14px; border: 3px solid var(--ink); border-radius: 14px; padding: 16px; background: #fffaf0; }
+  .editor h3 { margin: 0; }
+  .ed-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+  .ed-field { display: grid; gap: 4px; font-weight: 800; font-size: 0.85rem; }
+  .ed-field input, .ed-field select, .ed-field textarea { width: 100%; min-width: 0; border: 2px solid var(--ink); border-radius: 10px; padding: 8px 10px; background: #fff; font: inherit; font-weight: 400; }
+  .ed-item { border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 10px; background: #fff; }
+  .ed-item legend { font-weight: 900; padding: 0 6px; }
+  .ed-lines { display: grid; gap: 8px; }
+  .ed-line { display: grid; grid-template-columns: 70px repeat(4, minmax(0, 1fr)) 110px minmax(0, 1.4fr) auto; gap: 8px; align-items: end; padding: 8px; border: 1px dashed var(--line); border-radius: 10px; }
+  .ed-x { padding: 8px 12px; }
+  .ed-files { display: grid; gap: 8px; }
+  .ed-files .section-label { margin: 0; }
+  .ed-err { margin: 0; color: var(--pink); font-weight: 800; }
+  .chat-pic { display: grid; gap: 6px; justify-items: start; }
+  .chat-pic img { max-width: 240px; max-height: 240px; border-radius: 10px; background: #fff; border: 1px solid var(--line); }
+  @media (max-width: 900px) { .ed-line { grid-template-columns: 1fr 1fr; } .ed-x { justify-self: start; } }
   /* Chat with the customer */
   .chat { display: grid; gap: 10px; border: 2px solid var(--teal); border-radius: 14px; padding: 14px 16px; background: #f0fbfb; }
   .chat .section-label { margin: 0; }
@@ -277,6 +294,7 @@
       'Production begins once your order is approved and payment is received. If you have any questions or would like to make changes, simply reply to this email.\n\n' +
       'Thank you for your business,\nTiki T\'s\nCustom Apparel & Printing\n927 S Ridgewood Ave, Edgewater, FL 32132\ntikitsllc@gmail.com\ntikitsllc.com';
 
+  const EDIT_BTN = '<button type="button" class="btn" data-edit-order>✏️ Edit order</button>';
   function priceHtml(o) {
     const st = statusOf(o);
     const q = o.quote;
@@ -288,7 +306,7 @@
             '<p class="hint" data-total></p></div>' +
           '<div><label for="note-' + o.id + '">Note for them (optional)</label><textarea id="note-' + o.id + '" data-note placeholder="Includes front and back print. Ready in about a week.">' + esc(q ? q.note : '') + '</textarea></div>' +
         '</div>' +
-        '<div class="send-row"><button type="button" class="btn pink" data-save-price>Save price</button>' + (q ? '<button type="button" class="btn" data-cancel-edit>Cancel</button>' : '') + '</div>' +
+        '<div class="send-row"><button type="button" class="btn pink" data-save-price>Save price</button>' + (q ? '<button type="button" class="btn" data-cancel-edit>Cancel</button>' : '') + EDIT_BTN + '</div>' +
         '<p class="hint">After you save, you\'ll get buttons to email or text it to them. They tap a link to say yes or no.</p></div>';
     }
     const email = emailIn(o.contact), phone = phoneIn(o.contact);
@@ -303,7 +321,7 @@
       return '<div class="price-box paid"><h3>💳 PAID ' + esc('$' + (o.paid.amountCents / 100).toFixed(2)) + '. Ready to print!</h3>' +
         '<p class="hint">Paid ' + esc(fmtDate(o.paid.at)) + ' by card. The money goes to your Stripe account.</p>' +
         (o.response && o.response.message ? '<p class="their-msg">"' + esc(o.response.message) + '"</p>' : '') +
-        '<p class="hint">When it\'s finished, click <b>Mark as done</b>.</p></div>';
+        '<p class="hint">When it\'s finished, click <b>Mark as done</b>.</p><div class="send-row">' + EDIT_BTN + '</div></div>';
     }
     if (st === 'approved' || st === 'declined' || (o.response && st === 'done')) {
       const yes = o.response && o.response.answer === 'accept';
@@ -312,13 +330,13 @@
         (o.response && o.response.at ? '<p class="hint">Answered ' + esc(fmtDate(o.response.at)) + '</p>' : '') +
         (o.response && o.response.message ? '<p class="their-msg">"' + esc(o.response.message) + '"</p>' : '') +
         (yes ? (o.payment ? '<p class="hint">They went to the payment page but haven\'t finished paying yet. Don\'t print until it moves to <b>Paid</b>.</p>' : '<p class="hint">Waiting for their payment. Don\'t print until it moves to <b>Paid</b>.</p>') : '') +
-        '</div>';
+        '<div class="send-row">' + EDIT_BTN + '</div></div>';
     }
     return '<div class="price-box"><h3>Price sent: <span class="price-big">' + esc(q.price) + '</span></h3>' +
       (q.taxCents ? '<p class="hint">' + esc(money(q.subtotalCents)) + ' + ' + esc(money(q.taxCents)) + ' sales tax</p>' : '') +
       (q.note ? '<p class="hint">Note: ' + esc(q.note) + '</p>' : '') +
       '<p class="hint">Saved ' + esc(fmtDate(q.sentAt)) + '. Waiting for their answer. Haven\'t sent it yet? Use a button below.</p>' +
-      '<div class="send-row">' + sendButtons + '<button type="button" class="btn" data-edit-price>Change price</button></div>' +
+      '<div class="send-row">' + sendButtons + '<button type="button" class="btn" data-edit-price>Change price</button>' + EDIT_BTN + '</div>' +
       '<div class="qr-box" hidden></div>' +
       (!email && !phone ? '<p class="hint">Their contact info didn\'t look like an email or phone number, so copy the message and send it however you reach them.</p>' : '') +
       '</div>';
@@ -326,7 +344,9 @@
 
   // Uploaded file names are cleaned up by the server (netlify/functions/order-file.mjs), so match the same way
   const cleanName = n => String(n || '').replace(/[^\w.\- ]+/g, '_').slice(0, 100);
-  const artFor = (o, name) => name ? (o.uploads || []).find(u => u.kind !== 'mockup' && u.name === cleanName(name)) : null;
+  // Design files: the customer's artwork and images you add (not mockups or chat pictures)
+  const isDesignFile = u => u.kind !== 'mockup' && u.kind !== 'chat';
+  const artFor = (o, name) => name ? (o.uploads || []).find(u => isDesignFile(u) && u.name === cleanName(name)) : null;
   const mockupFor = (o, it) => (o.uploads || []).find(u => u.kind === 'mockup' && u.name === 'mockup-' + String(it.product || '').toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.png');
 
   // One order line: its design picture next to exactly what goes on it
@@ -369,6 +389,94 @@
       '<div class="meta"><span>' + esc(u.name) + '</span><button type="button" class="btn" data-download="' + esc(u.key) + '" data-name="' + esc(u.name) + '">Download</button></div></div>';
   }
 
+  /* ---------- Edit order ----------
+     Everything the customer filled out, editable, plus adding images. Saving updates
+     the order here and on their quote page. */
+  const editingOrder = new Set();
+  const PRINTS = ['DTF', 'Dye sub'];
+  const opt = (value, label, on) => '<option value="' + esc(value) + '"' + (on ? ' selected' : '') + '>' + esc(label) + '</option>';
+  const edField = (label, html) => '<label class="ed-field"><span>' + label + '</span>' + html + '</label>';
+  const edInput = (f, v, extra) => '<input data-f="' + f + '" value="' + esc(v == null ? '' : v) + '"' + (extra || '') + '>';
+  function edLineHtml(o, l) {
+    l = l || {};
+    const designs = (o.uploads || []).filter(isDesignFile);
+    const cur = artFor(o, l.design);
+    return '<div class="ed-line">' +
+      edField('Qty', edInput('qty', l.qty || '', ' type="number" min="0" inputmode="numeric"')) +
+      edField('Color', edInput('color', l.color)) +
+      edField('Style', edInput('style', l.style)) +
+      edField('Fit', edInput('fit', l.fit)) +
+      edField('Size', edInput('size', l.size)) +
+      edField('Print', '<select data-f="print">' + opt('', 'Pick one', !l.print) + PRINTS.map(p => opt(p, p, l.print === p)).join('') +
+        (l.print && !PRINTS.includes(l.print) ? opt(l.print, l.print, true) : '') + '</select>') +
+      edField('Design', '<select data-f="design">' + opt('', 'No design', !l.design) +
+        designs.map(u => opt(u.name, u.name, cur === u)).join('') +
+        (l.design && !cur ? opt(l.design, l.design + ' (file missing)', true) : '') + '</select>') +
+      '<button type="button" class="btn ed-x" data-ed-remove-line aria-label="Remove this line">✕</button></div>';
+  }
+  function edItemHtml(o, it, index) {
+    return '<fieldset class="ed-item" data-index="' + index + '"><legend>Item</legend>' +
+      edField('What it is (T-shirts, Hoodies...)', edInput('product', it.product)) +
+      '<div class="ed-lines">' + ((it.lines || []).length ? it.lines.map(l => edLineHtml(o, l)).join('') : edLineHtml(o)) + '</div>' +
+      '<div class="send-row"><button type="button" class="btn" data-ed-add-line>+ Add line</button>' +
+      '<button type="button" class="btn danger" data-ed-remove-item>Remove this item</button></div>' +
+      edField('Design details / where the print goes', '<textarea data-f="notes" rows="3">' + esc(it.notes || '') + '</textarea>') +
+      '</fieldset>';
+  }
+  function editorHtml(o) {
+    const designs = (o.uploads || []).filter(isDesignFile);
+    return '<div class="editor" data-editor><h3>✏️ Edit order</h3>' +
+      '<p class="hint">Change anything, then <b>Save changes</b>. Their quote page shows the update right away. If you change what\'s on the order, check the price too.</p>' +
+      '<div class="ed-row">' + edField('Name', '<input data-ed="name" value="' + esc(o.name) + '">') +
+        edField('Phone or email', '<input data-ed="contact" value="' + esc(o.contact) + '">') + '</div>' +
+      '<div data-ed-items>' + (o.items || []).map((it, i) => edItemHtml(o, it, i)).join('') + '</div>' +
+      '<div class="send-row"><button type="button" class="btn" data-ed-add-item>+ Add another item</button></div>' +
+      '<div class="ed-files"><p class="section-label">Images on this order</p>' +
+        '<div class="gallery" data-ed-gallery>' + designs.map(fileHtml).join('') + '</div>' +
+        '<div class="send-row"><label class="btn">📎 Add image<input type="file" data-ed-upload multiple accept="image/*,.pdf,.ai,.eps,.svg,.psd" hidden></label></div>' +
+        '<p class="hint" data-ed-status>Images you add can be picked in the Design box on any line. Up to 6 MB each.</p></div>' +
+      '<div class="send-row"><button type="button" class="btn pink" data-ed-save>Save changes</button><button type="button" class="btn" data-ed-cancel>Cancel</button></div>' +
+      '<p class="ed-err" data-ed-err hidden></p></div>';
+  }
+  function collectEdit(card) {
+    const ed = card.querySelector('[data-editor]');
+    const val = (root, f) => { const el = root.querySelector('[data-f="' + f + '"]'); return el ? el.value : ''; };
+    return {
+      name: ed.querySelector('[data-ed="name"]').value,
+      contact: ed.querySelector('[data-ed="contact"]').value,
+      items: [...ed.querySelectorAll('.ed-item')].map(f => ({
+        index: +f.dataset.index,
+        product: val(f, 'product'),
+        notes: val(f, 'notes'),
+        lines: [...f.querySelectorAll('.ed-line')].map(r => ({
+          qty: val(r, 'qty'), color: val(r, 'color'), style: val(r, 'style'), fit: val(r, 'fit'), size: val(r, 'size'),
+          print: val(r, 'print'), design: val(r, 'design')
+        }))
+      }))
+    };
+  }
+  async function uploadToOrder(card, order, files) {
+    const status = card.querySelector('[data-ed-status]');
+    for (const [i, f] of [...files].entries()) {
+      status.textContent = 'Adding ' + f.name + (files.length > 1 ? ' (' + (i + 1) + ' of ' + files.length + ')' : '') + '...';
+      if (f.size > 6 * 1024 * 1024) { status.textContent = f.name + ' is over 6 MB. Please shrink it and try again.'; continue; }
+      try {
+        const res = await authed('order-file?id=' + encodeURIComponent(order.id) + '&kind=art&name=' + encodeURIComponent(f.name),
+          { method: 'POST', headers: { 'Content-Type': f.type || 'application/octet-stream' }, body: f });
+        if (!res.ok) throw new Error(await res.text());
+        const { upload } = await res.json();
+        order.uploads = [...(order.uploads || []), upload];
+        const gallery = card.querySelector('[data-ed-gallery]');
+        gallery.insertAdjacentHTML('beforeend', fileHtml(upload));
+        gallery.querySelectorAll('img[data-key]:not([src])').forEach(loadImage);
+        card.querySelectorAll('[data-editor] select[data-f="design"]').forEach(s => s.insertAdjacentHTML('beforeend', opt(upload.name, upload.name, false)));
+        status.textContent = 'Added ' + upload.name + '. Pick it in the Design box on a line, then Save changes.';
+      } catch (err) {
+        status.textContent = 'Couldn\'t add ' + f.name + '. ' + (err.message || 'Try again.');
+      }
+    }
+  }
+
   /* ---------- Chat with the customer ----------
      Their messages come from the quote page; your replies show up there for them. */
   const fromShop = m => m.from === 'shop';
@@ -379,9 +487,13 @@
     return n ? '<span class="msg-count new">💬 ' + n + ' new message' + (n > 1 ? 's' : '') + '</span>'
       : (o.messages || []).length ? '<span class="msg-count">💬 Chat</span>' : '';
   };
+  // A picture sent in the chat: shown in the bubble, with a button to save it
+  const chatFileHtml = f => !f ? '' :
+    '<div class="chat-pic">' + (/^image\//.test(f.type) ? '<img data-key="' + esc(f.key) + '" alt="' + esc(f.name) + '">' : '') +
+    '<button type="button" class="btn" data-download="' + esc(f.key) + '" data-name="' + esc(f.name) + '">Download picture</button></div>';
   const chatLogHtml = o => (o.messages || []).map(m =>
     '<div class="bubble ' + (fromShop(m) ? 'me' : 'them') + '"><b>' + (fromShop(m) ? 'You' : esc(firstName(o.name))) + '</b>' +
-      '<span>' + esc(m.text) + '</span><small>' + esc(fmtDate(m.at)) + '</small></div>').join('');
+      chatFileHtml(m.file) + (m.text ? '<span>' + esc(m.text) + '</span>' : '') + '<small>' + esc(fmtDate(m.at)) + '</small></div>').join('');
   function chatHtml(o) {
     if (!o.quote) {
       return (o.messages || []).length ? '<div class="chat"><p class="section-label">Chat</p><div class="chat-log">' + chatLogHtml(o) + '</div></div>' : '';
@@ -397,10 +509,10 @@
   function orderHtml(o) {
     const st = statusOf(o);
     const items = o.items || [];
-    const art = (o.uploads || []).filter(u => u.kind !== 'mockup');
-    // Files and mockups already shown on a line or item aren't repeated at the bottom
+    const art = (o.uploads || []).filter(isDesignFile);
+    // Files and mockups already shown on a line or item aren't repeated at the bottom (chat pictures stay in the chat)
     const shown = new Set(items.flatMap(it => [mockupFor(o, it), ...(it.lines || []).map(l => artFor(o, l.design))]).filter(Boolean));
-    const leftover = (o.uploads || []).filter(u => !shown.has(u));
+    const leftover = (o.uploads || []).filter(u => !shown.has(u) && u.kind !== 'chat');
     const mainAction = st === 'done'
       ? '<button type="button" class="btn" data-status="' + (o.paid ? 'paid' : o.response && o.response.answer === 'accept' ? 'approved' : o.quote ? 'quoted' : 'new') + '">Move back</button>'
       : '<button type="button" class="btn' + (st === 'paid' ? ' primary' : '') + '" data-status="done">Mark as done</button>';
@@ -420,9 +532,10 @@
         '</div>' +
         priceHtml(o) +
         chatHtml(o) +
-        (art.length > 1 ? '<div class="files-head"><p class="section-label">What goes on each one</p><button type="button" class="btn primary" data-download-all>Download all ' + art.length + ' design files</button></div>' : '') +
-        items.map(it => itemHtml(o, it)).join('') +
-        (leftover.length ? '<div><p class="section-label">Other files they sent</p><div class="gallery">' + leftover.map(fileHtml).join('') + '</div></div>' : '') +
+        (editingOrder.has(o.id) ? editorHtml(o) :
+          (art.length > 1 ? '<div class="files-head"><p class="section-label">What goes on each one</p><button type="button" class="btn primary" data-download-all>Download all ' + art.length + ' design files</button></div>' : '') +
+          items.map(it => itemHtml(o, it)).join('') +
+          (leftover.length ? '<div><p class="section-label">Other files they sent</p><div class="gallery">' + leftover.map(fileHtml).join('') + '</div></div>' : '')) +
         (o.text ? '<details class="full"><summary>Show the full message</summary><pre>' + esc(o.text) + '</pre></details>' : '') +
       '</div></article>';
   }
@@ -494,10 +607,44 @@
       return;
     }
     if (e.target.closest('[data-send-reply]')) { sendReply(card, order); return; }
+    // Edit order
+    if (e.target.closest('[data-edit-order]')) {
+      editingOrder.add(id); render();
+      const ed = document.querySelector('.order[data-id="' + CSS.escape(id) + '"] [data-editor]');
+      if (ed) ed.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    if (e.target.closest('[data-ed-cancel]')) { editingOrder.delete(id); render(); return; }
+    if (e.target.closest('[data-ed-add-line]')) {
+      e.target.closest('.ed-item').querySelector('.ed-lines').insertAdjacentHTML('beforeend', edLineHtml(order));
+      return;
+    }
+    if (e.target.closest('[data-ed-remove-line]')) { e.target.closest('.ed-line').remove(); return; }
+    if (e.target.closest('[data-ed-add-item]')) {
+      card.querySelector('[data-ed-items]').insertAdjacentHTML('beforeend', edItemHtml(order, {}, -1));
+      return;
+    }
+    if (e.target.closest('[data-ed-remove-item]')) { e.target.closest('.ed-item').remove(); return; }
+    if (e.target.closest('[data-ed-save]')) {
+      const btn = e.target.closest('[data-ed-save]');
+      const err = card.querySelector('[data-ed-err]');
+      btn.disabled = true; btn.textContent = 'Saving...'; err.hidden = true;
+      try {
+        const res = await post({ id, action: 'edit', ...collectEdit(card) });
+        if (!res.ok) throw new Error(await res.text());
+        replaceOrder(await res.json());
+        editingOrder.delete(id);
+        render();
+      } catch (ex) {
+        btn.disabled = false; btn.textContent = 'Save changes';
+        err.textContent = ex.message || 'That didn\'t save. Try again.'; err.hidden = false;
+      }
+      return;
+    }
     const all = e.target.closest('[data-download-all]');
     if (all) {
       all.disabled = true;
-      const files = (order.uploads || []).filter(u => u.kind !== 'mockup');
+      const files = (order.uploads || []).filter(isDesignFile);
       for (let i = 0; i < files.length; i++) {
         all.textContent = 'Downloading ' + (i + 1) + ' of ' + files.length + '...';
         try { await download(files[i].key, files[i].name); } catch (err) { /* keep going */ }
@@ -566,7 +713,11 @@
   function updateChat(card, o) {
     if (!card) return;
     const log = card.querySelector('[data-chat-log]');
-    if (log && (o.messages || []).length) { log.innerHTML = chatLogHtml(o); log.scrollTop = log.scrollHeight; }
+    if (log && (o.messages || []).length) {
+      log.innerHTML = chatLogHtml(o);
+      log.querySelectorAll('img[data-key]').forEach(img => loadImage(img).then(() => { log.scrollTop = log.scrollHeight; }));
+      log.scrollTop = log.scrollHeight;
+    }
     const old = card.querySelector('.msg-count');
     const fresh = badgeHtml(o);
     if (old) old.outerHTML = fresh || '';
@@ -593,6 +744,12 @@
     btn.disabled = false; btn.textContent = 'Send';
     box.focus();
   }
+  // Edit order: images picked with "Add image" go straight onto the order
+  document.getElementById('orders').addEventListener('change', e => {
+    if (!e.target.matches('[data-ed-upload]') || !e.target.files.length) return;
+    const card = e.target.closest('.order');
+    uploadToOrder(card, ORDERS.find(o => o.id === card.dataset.id), e.target.files).then(() => { e.target.value = ''; });
+  });
   // Enter sends, Shift+Enter makes a new line
   document.getElementById('orders').addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey && e.target.matches('[data-reply]')) {
