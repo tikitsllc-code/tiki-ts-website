@@ -57,9 +57,13 @@
   .yes { background: var(--pink); color: #fff; }
   .no { background: #fff; color: var(--ink); }
   .send { background: var(--teal); color: var(--ink); }
-  .sent { display: grid; gap: 8px; }
-  .bubble { margin: 0; padding: 10px 12px; background: #fff; border: 2px solid var(--line); border-radius: 12px; white-space: pre-wrap; }
-  .bubble small { display: block; margin-top: 4px; color: var(--soft); font-size: 0.8rem; }
+  .chat-log { display: flex; flex-direction: column; gap: 8px; max-height: 360px; overflow-y: auto; padding: 4px 2px; }
+  .bubble { max-width: 85%; padding: 8px 12px; border-radius: 14px; display: grid; gap: 2px; }
+  .bubble b { font-size: 0.78rem; }
+  .bubble span { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .bubble small { font-size: 0.75rem; opacity: 0.75; }
+  .bubble.them { align-self: flex-start; background: #fff; border: 2px solid var(--teal); border-bottom-left-radius: 4px; }
+  .bubble.me { align-self: flex-end; background: var(--pink); color: #fff; border-bottom-right-radius: 4px; }
   .small.sent-ok { color: var(--green); font-weight: 800; }
   .btn:disabled { opacity: 0.6; cursor: default; }
   .done-box { text-align: center; }
@@ -124,27 +128,58 @@
         '<button class="btn no" id="no" type="button">No thanks</button></div>' +
         '<p class="error" id="err" hidden></p>' +
         '<p class="small">' + (o.canPay ? 'You\'ll pay securely by card on the next page. Nothing gets printed until it\'s paid.' : 'Nothing gets printed until you say yes.') + '</p></section>');
+    LAST = o;
+    showChat(o.messages || []);
     document.getElementById('send').addEventListener('click', () => sendMessage(o));
+    // Enter sends, Shift+Enter makes a new line
+    document.getElementById('msg').addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(o); }
+    });
     if (!answered) {
       document.getElementById('yes').addEventListener('click', () => answer('accept', o));
       document.getElementById('no').addEventListener('click', () => answer('decline', o));
     }
   }
-  // Questions or changes can be sent any time, without saying yes or paying
+  // Chat with the shop: questions or changes can be sent any time, without saying yes or paying
+  const chatLogHtml = msgs => msgs.map(m =>
+    '<div class="bubble ' + (m.from === 'shop' ? 'them' : 'me') + '"><b>' + (m.from === 'shop' ? 'Tiki T\'s' : 'You') + '</b>' +
+      '<span>' + esc(m.text) + '</span><small>' + esc(fmtWhen(m.at)) + '</small></div>').join('');
   function messageHtml(o) {
-    const sent = o.messages || [];
-    return '<section class="card answer"><label for="msg">Questions or changes? Message us</label>' +
+    const msgs = o.messages || [];
+    return '<section class="card answer"><h2 style="margin:0">Questions or changes? Chat with us</h2>' +
+      '<div class="chat-log" id="chat-log"' + (msgs.length ? '' : ' hidden') + '>' + chatLogHtml(msgs) + '</div>' +
+      '<label for="msg" class="small" style="font-weight:600">Your message</label>' +
       '<textarea id="msg" placeholder="Questions, changes, when you need it..."></textarea>' +
       '<div class="buttons"><button class="btn send" id="send" type="button">Send message</button></div>' +
       '<p class="small" id="msg-status" role="status" hidden></p>' +
-      (sent.length ? '<div class="sent"><p class="small" style="margin:0">Messages you sent us:</p>' +
-        sent.map(m => '<p class="bubble">' + esc(m.text) + '<small>' + esc(fmtWhen(m.at)) + '</small></p>').join('') + '</div>' : '') +
+      '<p class="small" style="margin:0">Our replies show up right here. Keep this page open or come back to this link to see them.</p>' +
       '</section>';
   }
+  // Show new replies from the shop without reloading or losing what's being typed
+  let LAST = null;
+  function showChat(msgs) {
+    const log = document.getElementById('chat-log');
+    if (!log) return;
+    log.innerHTML = chatLogHtml(msgs);
+    log.hidden = !msgs.length;
+    log.scrollTop = log.scrollHeight;
+  }
+  async function checkReplies() {
+    if (document.hidden || !LAST) return;
+    try {
+      const res = await fetch(API);
+      if (!res.ok) return;
+      const o = await res.json();
+      if ((o.messages || []).length !== (LAST.messages || []).length) { LAST.messages = o.messages; showChat(o.messages); }
+    } catch (e) { /* try again next time */ }
+  }
+  setInterval(checkReplies, 30000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkReplies(); });
   async function sendMessage(o) {
     const box = document.getElementById('msg');
     const btn = document.getElementById('send');
     const status = document.getElementById('msg-status');
+    if (btn.disabled) return; // already sending
     const text = box.value.trim();
     const say = (t, bad) => { status.textContent = t; status.className = bad ? 'error' : 'small'; status.hidden = false; };
     if (!text) { say('Type your message first.', true); box.focus(); return; }
