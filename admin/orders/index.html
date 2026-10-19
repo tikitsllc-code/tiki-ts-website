@@ -130,6 +130,10 @@
   .ed-design { display: flex; gap: 6px; }
   .ed-design select { flex: 1; min-width: 0; }
   .ed-pic { padding: 6px 10px; flex: none; }
+  .ed-pic.busy { opacity: 0.5; pointer-events: none; }
+  .ed-line-msg { grid-column: 1 / -1; margin: 0; font-weight: 800; font-size: 0.85rem; color: var(--green); }
+  .ed-line-msg.bad { color: var(--pink); }
+  .ed-line-msg[hidden] { display: none; }
   .ed-files { display: grid; gap: 8px; }
   .ed-files .section-label { margin: 0; }
   .ed-err { margin: 0; color: var(--pink); font-weight: 800; }
@@ -469,7 +473,8 @@
         designs.map(u => opt(u.name, u.name, cur === u)).join('') +
         (l.design && !cur ? opt(l.design, l.design + ' (file missing)', true) : '') + '</select>' +
         '<label class="btn ed-pic" title="Add an image for this line">📎<input type="file" data-ed-line-upload accept="image/*,.pdf,.ai,.eps,.svg,.psd" hidden></label></div></div>' +
-      '<button type="button" class="btn ed-x" data-ed-remove-line aria-label="Remove this line">✕</button></div>';
+      '<button type="button" class="btn ed-x" data-ed-remove-line aria-label="Remove this line">✕</button>' +
+      '<p class="ed-line-msg" role="status" hidden></p></div>';
   }
   function edItemHtml(o, it, index) {
     const known = CATALOG.items.map(i => i.name);
@@ -521,28 +526,62 @@
       }))
     };
   }
-  // Uploads images to the order; returns the ones that made it
-  async function uploadToOrder(card, order, files) {
+  /* The website (Netlify) can only take about 4.5 MB per file. Bigger pictures get a smaller
+     copy so they still go on the order; your original file stays full size for printing. */
+  const FILE_LIMIT = 4.4 * 1024 * 1024;
+  async function fitImage(file) {
+    if (file.size <= FILE_LIMIT || !/^image\/(png|jpe?g|webp)$/.test(file.type)) return file;
+    let bmp;
+    try { bmp = await createImageBitmap(file); } catch (e) { return file; }
+    const long = Math.max(bmp.width, bmp.height);
+    const draw = (cap, type) => {
+      const k = Math.min(1, cap / long);
+      const c = document.createElement('canvas');
+      c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+      const g = c.getContext('2d');
+      if (type === 'image/jpeg') { g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); }
+      g.drawImage(bmp, 0, 0, c.width, c.height);
+      return new Promise(r => c.toBlob(r, type, 0.9));
+    };
+    let out = null;
+    for (const cap of [4000, 3200, 2600, 2000, 1500]) {
+      // keep PNGs as PNG (see-through backgrounds) when they fit, otherwise use JPG
+      if (file.type === 'image/png') { out = await draw(cap, 'image/png'); if (out && out.size <= FILE_LIMIT) break; }
+      out = await draw(cap, 'image/jpeg'); if (out && out.size <= FILE_LIMIT) break;
+    }
+    bmp.close();
+    if (!out || out.size > FILE_LIMIT) return file;
+    return new File([out], file.name.replace(/\.\w+$/, '') + (out.type === 'image/png' ? '.png' : '.jpg'), { type: out.type });
+  }
+  // Uploads images to the order; returns the ones that made it.
+  // say(text, bad) also shows the progress next to the line's 📎 when adding from a line.
+  async function uploadToOrder(card, order, files, lineSay) {
     const status = card.querySelector('[data-ed-status]');
+    const say = (t, bad) => {
+      status.textContent = t; status.classList.toggle('ed-err', !!bad);
+      if (lineSay) lineSay(t, bad);
+    };
     const added = [];
     for (const [i, f] of [...files].entries()) {
-      status.textContent = 'Adding ' + f.name + (files.length > 1 ? ' (' + (i + 1) + ' of ' + files.length + ')' : '') + '...';
-      // The website can only take about 4.5 MB per file (Netlify's limit)
-      if (f.size > 4.5 * 1024 * 1024) { status.textContent = f.name + ' is over 4.5 MB, which is too big to add here. Save a smaller copy (or a JPG) and try again.'; continue; }
+      say('Adding ' + f.name + (files.length > 1 ? ' (' + (i + 1) + ' of ' + files.length + ')' : '') + '...');
       try {
-        const res = await authed('order-file?id=' + encodeURIComponent(order.id) + '&kind=art&name=' + encodeURIComponent(f.name),
-          { method: 'POST', headers: { 'Content-Type': f.type || 'application/octet-stream' }, body: f });
-        if (!res.ok) throw new Error(await res.text());
+        const file = await fitImage(f);
+        const shrunk = file !== f;
+        if (file.size > FILE_LIMIT + 100 * 1024) throw new Error(f.name + ' is ' + (f.size / 1048576).toFixed(1) + ' MB. The most the website can take is 4.5 MB, so save a smaller copy (or a JPG) and try again.');
+        const res = await authed('order-file?id=' + encodeURIComponent(order.id) + '&kind=art&name=' + encodeURIComponent(file.name),
+          { method: 'POST', headers: { 'Content-Type': file.type || 'application/octet-stream' }, body: file });
+        if (res.status === 401) throw new Error('Your admin login expired. Open Edit my website, log in, then come back.');
+        if (!res.ok) throw new Error(res.status === 413 || res.status >= 500 ? 'That file is too big for the website. Save a smaller copy and try again.' : await res.text());
         const { upload } = await res.json();
         order.uploads = [...(order.uploads || []), upload];
         const gallery = card.querySelector('[data-ed-gallery]');
         gallery.insertAdjacentHTML('beforeend', fileHtml(upload));
         gallery.querySelectorAll('img[data-key]:not([src])').forEach(loadImage);
         card.querySelectorAll('[data-editor] select[data-f="design"]').forEach(s => s.insertAdjacentHTML('beforeend', opt(upload.name, upload.name, false)));
-        status.textContent = 'Added ' + upload.name + '. Pick it in the Design box on a line, then Save changes.';
+        say('✓ Added ' + upload.name + (shrunk ? ' (made smaller to fit: ' + (f.size / 1048576).toFixed(1) + ' MB → ' + (file.size / 1048576).toFixed(1) + ' MB; print from your original)' : '') + '. Click Save changes when you\'re done.');
         added.push(upload);
       } catch (err) {
-        status.textContent = 'Couldn\'t add ' + f.name + '. ' + (err.message || 'Try again.');
+        say('Couldn\'t add ' + f.name + '. ' + (err.message || 'Try again.'), true);
       }
     }
     return added;
@@ -854,12 +893,14 @@
     // Images: "Add image" goes onto the order; 📎 on a line also puts it on that line
     if (t.matches('[data-ed-upload], [data-ed-line-upload]') && t.files.length) {
       const line = t.closest('.ed-line');
-      uploadToOrder(card, order, t.files).then(added => {
+      const msg = line && line.querySelector('.ed-line-msg');
+      const lineSay = msg ? (text, bad) => { msg.textContent = text; msg.classList.toggle('bad', !!bad); msg.hidden = false; } : null;
+      const pic = line && line.querySelector('.ed-pic');
+      if (pic) pic.classList.add('busy');
+      uploadToOrder(card, order, t.files, lineSay).then(added => {
         t.value = '';
-        if (line && added.length) {
-          line.querySelector('select[data-f="design"]').value = added[0].name;
-          card.querySelector('[data-ed-status]').textContent = 'Added ' + added[0].name + ' to that line. Click Save changes when you\'re done.';
-        }
+        if (pic) pic.classList.remove('busy');
+        if (line && added.length) line.querySelector('select[data-f="design"]').value = added[0].name;
       });
     }
   });
