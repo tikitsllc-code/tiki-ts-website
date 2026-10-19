@@ -113,6 +113,7 @@
   .their-msg small { display: block; margin-top: 4px; color: var(--soft); font-size: 0.8rem; }
   .msg-count { background: var(--teal); color: var(--ink); font-weight: 900; font-size: 0.8rem; border-radius: 999px; padding: 3px 10px; }
   .msg-count.new { background: var(--pink); color: #fff; }
+  .update-note { display: grid; gap: 10px; background: #fff4b8; border: 2px solid var(--ink); border-left: 6px solid var(--pink); border-radius: 12px; padding: 12px 14px; }
   /* Edit order */
   .editor { display: grid; gap: 14px; border: 3px solid var(--ink); border-radius: 14px; padding: 16px; background: #fffaf0; }
   .editor h3 { margin: 0; }
@@ -281,14 +282,20 @@
   const SITE = /netlify\.app$|^localhost$/.test(location.hostname) ? 'https://tikitsllc.com' : location.origin;
   const quoteLink = o => SITE + '/quote/?id=' + encodeURIComponent(o.id) + '&k=' + encodeURIComponent(o.key || '');
   const orderWhat = o => (o.items || []).map(it => [it.total, it.product].filter(Boolean).join(' ')).filter(Boolean).join(' and ') || 'custom order';
-  const priceSubject = o => 'Your Tiki T\'s Quote: ' + orderWhat(o);
+  // The order was edited after the price went out (and the update hasn't been sent yet)
+  const isUpdated = o => !!(o.quote && o.editedAt && o.editedAt > (o.quote.resentAt || o.quote.sentAt || ''));
+  const priceSubject = o => 'Your ' + (isUpdated(o) ? 'Updated ' : '') + 'Tiki T\'s Quote: ' + orderWhat(o);
   // byText = the shorter version for a text message
   const priceMessage = (o, byText) => byText
-    ? 'Hello ' + firstName(o.name) + ', this is Tiki T\'s. Your quote for ' + orderWhat(o) + ' is ready: ' + o.quote.price + (o.quote.taxCents ? ' including tax' : '') + '.' + (o.quote.note ? ' ' + o.quote.note : '') + '\n\n' +
-      'View and approve your order here:\n' + quoteLink(o) + '\n\n' +
+    ? 'Hello ' + firstName(o.name) + ', this is Tiki T\'s. ' +
+      (isUpdated(o) ? 'We updated your order (' + orderWhat(o) + '). Your quote is ' : 'Your quote for ' + orderWhat(o) + ' is ready: ') +
+      o.quote.price + (o.quote.taxCents ? ' including tax' : '') + '.' + (o.quote.note ? ' ' + o.quote.note : '') + '\n\n' +
+      (isUpdated(o) ? 'See the changes and approve your order here:\n' : 'View and approve your order here:\n') + quoteLink(o) + '\n\n' +
       'Reply to this text with any questions. Thank you!'
     : 'Hello ' + firstName(o.name) + ',\n\n' +
-      'Thank you for choosing Tiki T\'s. We\'ve reviewed your request for ' + orderWhat(o) + ', and your quote is ready.\n\n' +
+      (isUpdated(o)
+        ? 'We\'ve updated your Tiki T\'s order (' + orderWhat(o) + ') with the changes we talked about, and your updated quote is ready.\n\n'
+        : 'Thank you for choosing Tiki T\'s. We\'ve reviewed your request for ' + orderWhat(o) + ', and your quote is ready.\n\n') +
       'Quote total: ' + o.quote.price + (o.quote.taxCents ? ' (' + money(o.quote.subtotalCents) + ' + ' + money(o.quote.taxCents) + ' Florida sales tax)' : '') + (o.quote.note ? '\nNotes: ' + o.quote.note : '') + '\n\n' +
       'To view your order details and approve your order, please visit:\n' + quoteLink(o) + '\n\n' +
       'Production begins once your order is approved and payment is received. If you have any questions or would like to make changes, simply reply to this email.\n\n' +
@@ -311,12 +318,19 @@
     }
     const email = emailIn(o.contact), phone = phoneIn(o.contact);
     const msg = priceMessage(o);
+    const upd = isUpdated(o);
+    // When the order was edited, the same buttons send the updated quote (and clear the reminder)
+    const mark = upd ? ' data-mark-sent' : '';
     const sendButtons =
-      (email ? '<a class="btn pink" target="_blank" rel="noopener" href="https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(email) + '&su=' + encodeURIComponent(priceSubject(o)) + '&body=' + encodeURIComponent(msg) + '">Email it (Gmail)</a>' : '') +
-      (phone ? (onPhone ? '<a class="btn pink" href="' + smsLink(phone, priceMessage(o, true)) + '">Text it</a>'
-                        : '<button type="button" class="btn pink" data-text-qr>Text it from my phone</button>') : '') +
-      '<button type="button" class="btn" data-copy-msg>Copy message</button>' +
+      (email ? '<a class="btn pink"' + mark + ' target="_blank" rel="noopener" href="https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(email) + '&su=' + encodeURIComponent(priceSubject(o)) + '&body=' + encodeURIComponent(msg) + '">' + (upd ? 'Email updated quote (Gmail)' : 'Email it (Gmail)') + '</a>' : '') +
+      (phone ? (onPhone ? '<a class="btn pink"' + mark + ' href="' + smsLink(phone, priceMessage(o, true)) + '">' + (upd ? 'Text updated quote' : 'Text it') + '</a>'
+                        : '<button type="button" class="btn pink"' + mark + ' data-text-qr>' + (upd ? 'Text updated quote from my phone' : 'Text it from my phone') + '</button>') : '') +
+      '<button type="button" class="btn"' + mark + ' data-copy-msg>' + (upd ? 'Copy updated message' : 'Copy message') + '</button>' +
       '<button type="button" class="btn" data-copy-link>Copy link only</button>';
+    const updateNote = upd
+      ? '<div class="update-note"><b>✏️ You changed this order after sending the price.</b> Send them the updated quote so they see the changes:' +
+        '<div class="send-row">' + sendButtons + '</div><div class="qr-box" hidden></div></div>'
+      : '';
     if (o.paid) {
       return '<div class="price-box paid"><h3>💳 PAID ' + esc('$' + (o.paid.amountCents / 100).toFixed(2)) + '. Ready to print!</h3>' +
         '<p class="hint">Paid ' + esc(fmtDate(o.paid.at)) + ' by card. The money goes to your Stripe account.</p>' +
@@ -330,14 +344,16 @@
         (o.response && o.response.at ? '<p class="hint">Answered ' + esc(fmtDate(o.response.at)) + '</p>' : '') +
         (o.response && o.response.message ? '<p class="their-msg">"' + esc(o.response.message) + '"</p>' : '') +
         (yes ? (o.payment ? '<p class="hint">They went to the payment page but haven\'t finished paying yet. Don\'t print until it moves to <b>Paid</b>.</p>' : '<p class="hint">Waiting for their payment. Don\'t print until it moves to <b>Paid</b>.</p>') : '') +
+        updateNote +
         '<div class="send-row">' + EDIT_BTN + '</div></div>';
     }
     return '<div class="price-box"><h3>Price sent: <span class="price-big">' + esc(q.price) + '</span></h3>' +
       (q.taxCents ? '<p class="hint">' + esc(money(q.subtotalCents)) + ' + ' + esc(money(q.taxCents)) + ' sales tax</p>' : '') +
       (q.note ? '<p class="hint">Note: ' + esc(q.note) + '</p>' : '') +
-      '<p class="hint">Saved ' + esc(fmtDate(q.sentAt)) + '. Waiting for their answer. Haven\'t sent it yet? Use a button below.</p>' +
-      '<div class="send-row">' + sendButtons + '<button type="button" class="btn" data-edit-price>Change price</button>' + EDIT_BTN + '</div>' +
-      '<div class="qr-box" hidden></div>' +
+      '<p class="hint">Saved ' + esc(fmtDate(q.sentAt)) + '. Waiting for their answer.' + (upd ? '' : ' Haven\'t sent it yet? Use a button below.') + '</p>' +
+      (upd ? updateNote + '<div class="send-row"><button type="button" class="btn" data-edit-price>Change price</button>' + EDIT_BTN + '</div>'
+           : '<div class="send-row">' + sendButtons + '<button type="button" class="btn" data-edit-price>Change price</button>' + EDIT_BTN + '</div>' +
+             '<div class="qr-box" hidden></div>') +
       (!email && !phone ? '<p class="hint">Their contact info didn\'t look like an email or phone number, so copy the message and send it however you reach them.</p>' : '') +
       '</div>';
   }
@@ -434,7 +450,7 @@
       '<div class="ed-files"><p class="section-label">Images on this order</p>' +
         '<div class="gallery" data-ed-gallery>' + designs.map(fileHtml).join('') + '</div>' +
         '<div class="send-row"><label class="btn">📎 Add image<input type="file" data-ed-upload multiple accept="image/*,.pdf,.ai,.eps,.svg,.psd" hidden></label></div>' +
-        '<p class="hint" data-ed-status>Images you add can be picked in the Design box on any line. Up to 6 MB each.</p></div>' +
+        '<p class="hint" data-ed-status>Images you add can be picked in the Design box on any line. Up to 4.5 MB each.</p></div>' +
       '<div class="send-row"><button type="button" class="btn pink" data-ed-save>Save changes</button><button type="button" class="btn" data-ed-cancel>Cancel</button></div>' +
       '<p class="ed-err" data-ed-err hidden></p></div>';
   }
@@ -459,7 +475,8 @@
     const status = card.querySelector('[data-ed-status]');
     for (const [i, f] of [...files].entries()) {
       status.textContent = 'Adding ' + f.name + (files.length > 1 ? ' (' + (i + 1) + ' of ' + files.length + ')' : '') + '...';
-      if (f.size > 6 * 1024 * 1024) { status.textContent = f.name + ' is over 6 MB. Please shrink it and try again.'; continue; }
+      // The website can only take about 4.5 MB per file (Netlify's limit)
+      if (f.size > 4.5 * 1024 * 1024) { status.textContent = f.name + ' is over 4.5 MB, which is too big to add here. Save a smaller copy (or a JPG) and try again.'; continue; }
       try {
         const res = await authed('order-file?id=' + encodeURIComponent(order.id) + '&kind=art&name=' + encodeURIComponent(f.name),
           { method: 'POST', headers: { 'Content-Type': f.type || 'application/octet-stream' }, body: f });
@@ -606,6 +623,15 @@
       try { await download(dl.dataset.download, dl.dataset.name); dl.textContent = 'Download'; } catch (err) { dl.textContent = 'Try again'; }
       return;
     }
+    // Sending the updated quote (email, text or copy) clears the "you changed this order" reminder
+    if (e.target.closest('[data-mark-sent]')) {
+      const note = card.querySelector('.update-note b');
+      post({ id, action: 'resent' }).then(async res => {
+        if (!res.ok) return;
+        replaceOrder(await res.json());
+        if (note) note.textContent = '✓ Updated quote marked as sent.';
+      }).catch(() => {});
+    }
     if (e.target.closest('[data-send-reply]')) { sendReply(card, order); return; }
     // Edit order
     if (e.target.closest('[data-edit-order]')) {
@@ -635,6 +661,9 @@
         replaceOrder(await res.json());
         editingOrder.delete(id);
         render();
+        // If the price already went out, jump to the "send the updated quote" buttons
+        const note = document.querySelector('.order[data-id="' + CSS.escape(id) + '"] .update-note');
+        if (note) note.scrollIntoView({ behavior: 'smooth', block: 'center' });
       } catch (ex) {
         btn.disabled = false; btn.textContent = 'Save changes';
         err.textContent = ex.message || 'That didn\'t save. Try again.'; err.hidden = false;
