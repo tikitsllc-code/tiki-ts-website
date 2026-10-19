@@ -607,11 +607,11 @@
     const n = ORDERS.reduce((t, o) => t + unread(o), 0);
     document.title = n ? '(' + n + ') ' + BASE_TITLE : BASE_TITLE;
   }
-  // Quietly check for new customer messages every 30 seconds while this page is open
+  // Quietly check for new customer messages every 10 seconds while this page is open
   async function checkChats() {
     if (document.hidden || !token() || !ORDERS.length) return;
     let res;
-    try { res = await authed('orders'); } catch (e) { return; }
+    try { res = await authed('orders?chat=1'); } catch (e) { return; }
     if (!res.ok) return;
     const latest = await res.json();
     latest.forEach(o => {
@@ -622,7 +622,7 @@
     });
     updateTitle();
   }
-  setInterval(checkChats, 30000);
+  setInterval(checkChats, 10000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) checkChats(); });
 
   document.getElementById('refresh').addEventListener('click', load);
