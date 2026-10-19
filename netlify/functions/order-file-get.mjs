@@ -1,4 +1,4 @@
-// Sends one order file (artwork or mockup) to the admin Orders page.
+// Sends one order file (artwork or mockup), or one piece of a big file, to the admin Orders page.
 // Only the logged-in shop owner can download files.
 import { getStore } from "@netlify/blobs";
 
@@ -17,9 +17,13 @@ async function isShopOwner(req) {
 
 export default async (req) => {
   if (!(await isShopOwner(req))) return new Response("Please log in to the admin first", { status: 401 });
-  const key = new URL(req.url).searchParams.get("key") || "";
+  const url = new URL(req.url);
+  const key = url.searchParams.get("key") || "";
   if (!/^\d{14}-[a-z0-9]{6}\/\d+-[\w.\- ]+$/.test(key)) return new Response("Bad file", { status: 400 });
-  const found = await getStore({ name: "order-files", consistency: "strong" }).getWithMetadata(key, { type: "arrayBuffer" });
+  // Big files are stored in pieces (key/part-N); the Orders page fetches each piece and joins them
+  const part = url.searchParams.get("part");
+  if (part !== null && !/^\d{1,2}$/.test(part)) return new Response("Bad file piece", { status: 400 });
+  const found = await getStore({ name: "order-files", consistency: "strong" }).getWithMetadata(part === null ? key : key + "/part-" + part, { type: "arrayBuffer" });
   if (!found) return new Response("File not found", { status: 404 });
   const meta = found.metadata || {};
   return new Response(found.data, {

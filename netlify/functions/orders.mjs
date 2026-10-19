@@ -47,7 +47,9 @@ export default async (req) => {
 
     if (body.action === "delete") {
       const files = getStore({ name: "order-files", consistency: "strong" });
-      await Promise.all((order.uploads || []).map((u) => files.delete(u.key)));
+      // big files are stored in pieces (key/part-N)
+      const keys = (order.uploads || []).flatMap((u) => u.parts ? Array.from({ length: u.parts }, (_, i) => u.key + "/part-" + i) : [u.key]);
+      await Promise.all(keys.map((k) => files.delete(k)));
       await orders.delete(id);
       return Response.json({ ok: true });
     }
