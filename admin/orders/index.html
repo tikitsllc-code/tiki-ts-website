@@ -125,6 +125,11 @@
   .ed-lines { display: grid; gap: 8px; }
   .ed-line { display: grid; grid-template-columns: 64px repeat(4, minmax(0, 1fr)) 100px minmax(0, 2fr) auto; gap: 8px; align-items: end; padding: 8px; border: 1px dashed var(--line); border-radius: 10px; }
   .ed-x { padding: 8px 12px; }
+  .ed-price { display: grid; gap: 8px; border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; background: #fff; }
+  .ed-price .section-label { margin: 0; }
+  .ed-price .tax-check { display: flex; gap: 8px; align-items: center; margin-top: 8px; font-weight: 600; font-size: 0.9rem; }
+  .ed-price .tax-check input { width: auto; margin: 0; }
+  .ed-price [data-ed-total] { margin: 6px 0 0; font-weight: 800; color: var(--ink); }
   .ed-other { margin-top: 4px; }
   .ed-other[hidden] { display: none; }
   .ed-design { display: flex; gap: 6px; }
@@ -486,12 +491,36 @@
       edField('Design details / where the print goes', '<textarea data-f="notes" rows="3">' + esc(it.notes || '') + '</textarea>') +
       '</fieldset>';
   }
+  // Price, tax and note, the same as "Change price" (left blank = no price yet)
+  function edPriceHtml(o) {
+    const q = o.quote;
+    if (o.paid) return '<div class="ed-price"><p class="section-label">Price</p><p class="hint"><b>' + esc(q.price) + '</b>, already paid, so it can\'t be changed here.</p></div>';
+    const before = q ? ((q.subtotalCents || q.amountCents) / 100).toFixed(2) : '';
+    return '<div class="ed-price"><p class="section-label">Price</p><div class="ed-row">' +
+      '<div>' + edField('Price before tax ($)', '<input data-ed="price" inputmode="decimal" placeholder="45.00" value="' + esc(before) + '">') +
+        '<label class="tax-check"><input type="checkbox" data-ed="addtax"' + (!q || q.taxCents ? ' checked' : '') + '> Add FL sales tax (' + +(TAX_RATE * 100).toFixed(2) + '%)</label>' +
+        '<p class="hint" data-ed-total></p></div>' +
+      edField('Note for them (optional)', '<textarea data-ed="note" rows="2" placeholder="Includes front and back print. Ready in about a week.">' + esc(q ? q.note : '') + '</textarea>') +
+      '</div>' +
+      (o.response && o.response.answer === 'accept' ? '<p class="hint">They already said yes. If you change the price, they\'ll need to approve the new price (and pay it) again.</p>' : '') +
+      '</div>';
+  }
+  function showEdTotal(card) {
+    const out = card.querySelector('[data-ed-total]');
+    if (!out) return;
+    const amount = parseFloat(card.querySelector('[data-ed="price"]').value.replace(/[^0-9.]/g, ''));
+    if (!(amount > 0)) { out.textContent = ''; return; }
+    const sub = Math.round(amount * 100);
+    const tax = card.querySelector('[data-ed="addtax"]').checked ? Math.round(sub * TAX_RATE) : 0;
+    out.textContent = tax ? money(sub) + ' + ' + money(tax) + ' tax = ' + money(sub + tax) + ' total' : 'Total: ' + money(sub) + ' (no tax)';
+  }
   function editorHtml(o) {
     const designs = (o.uploads || []).filter(isDesignFile);
     return '<div class="editor" data-editor><h3>✏️ Edit order</h3>' +
       '<p class="hint">Change anything, then <b>Save changes</b>. Their quote page shows the update right away. If you change what\'s on the order, check the price too.</p>' +
       '<div class="ed-row">' + edField('Name', '<input data-ed="name" value="' + esc(o.name) + '">') +
         edField('Phone or email', '<input data-ed="contact" value="' + esc(o.contact) + '">') + '</div>' +
+      edPriceHtml(o) +
       '<div data-ed-items>' + (o.items || []).map((it, i) => edItemHtml(o, it, i)).join('') + '</div>' +
       '<div class="send-row"><button type="button" class="btn" data-ed-add-item>+ Add another item</button></div>' +
       '<div class="ed-files"><p class="section-label">Images on this order</p>' +
@@ -515,9 +544,13 @@
   });
   function collectEdit(card) {
     const ed = card.querySelector('[data-editor]');
+    const price = ed.querySelector('[data-ed="price"]');
     return {
       name: ed.querySelector('[data-ed="name"]').value,
       contact: ed.querySelector('[data-ed="contact"]').value,
+      price: price ? price.value : '',
+      addTax: price ? ed.querySelector('[data-ed="addtax"]').checked : true,
+      note: price ? ed.querySelector('[data-ed="note"]').value : '',
       items: [...ed.querySelectorAll('.ed-item')].map(f => ({
         index: +f.dataset.index,
         product: edVal(f.querySelector('.ed-field'), 'product'),
@@ -659,6 +692,7 @@
     box.querySelectorAll('[data-chat-log]').forEach(log => { log.scrollTop = log.scrollHeight; });
     updateTitle();
     box.querySelectorAll('[data-total]').forEach(el => showTotal(el.closest('.order')));
+    box.querySelectorAll('[data-ed-total]').forEach(el => showEdTotal(el.closest('.order')));
   }
 
   // Live "subtotal + tax = total" under the price box
@@ -672,6 +706,7 @@
   }
   document.getElementById('orders').addEventListener('input', e => {
     if (e.target.matches('[data-price], [data-add-tax]')) showTotal(e.target.closest('.order'));
+    if (e.target.matches('[data-ed="price"], [data-ed="addtax"]')) showEdTotal(e.target.closest('.order'));
   });
 
   async function fileBlob(key) {
