@@ -167,13 +167,13 @@
   async function checkReplies() {
     if (document.hidden || !LAST) return;
     try {
-      const res = await fetch(API);
+      const res = await fetch(API + '&chat=1');
       if (!res.ok) return;
       const o = await res.json();
       if ((o.messages || []).length !== (LAST.messages || []).length) { LAST.messages = o.messages; showChat(o.messages); }
     } catch (e) { /* try again next time */ }
   }
-  setInterval(checkReplies, 30000);
+  setInterval(checkReplies, 10000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) checkReplies(); });
   async function sendMessage(o) {
     const box = document.getElementById('msg');
