@@ -7,6 +7,18 @@ const REPO = "tikitsllc-code/tiki-ts-website";
 const ID_PATTERN = /^\d{14}-[a-z0-9]{6}$/;
 const TAX_RATE = 0.065; // Florida 6% + Volusia County 0.5%
 
+// The shop types the price before tax; Florida sales tax is added on top unless they untick it.
+// Returns null if the price isn't a usable number.
+function makeQuote(priceText, addTax, note) {
+  const amount = parseFloat(String(priceText || "").replace(/[^0-9.]/g, ""));
+  if (!(amount > 0) || amount > 100000) return null;
+  const subtotalCents = Math.round(amount * 100);
+  const taxRate = addTax === false ? 0 : TAX_RATE;
+  const taxCents = Math.round(subtotalCents * taxRate);
+  const amountCents = subtotalCents + taxCents;
+  return { price: "$" + (amountCents / 100).toFixed(2), amountCents, subtotalCents, taxCents, taxRate, note: String(note || "").trim().slice(0, 1000) };
+}
+
 async function isShopOwner(req) {
   const token = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
   if (!token) return false;
@@ -82,10 +94,32 @@ export default async (req) => {
         };
       }).filter((it) => it.lines.length);
       if (!items.length) return new Response("The order needs at least one line with a quantity", { status: 400 });
+      const now = new Date().toISOString();
+      // The price can be changed here too (left blank = no change)
+      if (String(body.price == null ? "" : body.price).trim()) {
+        const q = makeQuote(body.price, body.addTax, body.note);
+        if (!q) return new Response("Please type the price as a number, like 45 or 45.50", { status: 400 });
+        const old = order.quote;
+        const priceChanged = !old || old.subtotalCents !== q.subtotalCents || old.taxCents !== q.taxCents;
+        if (order.paid && priceChanged) return new Response("This order is already paid, so the price can't be changed.", { status: 400 });
+        if (!order.key) order.key = crypto.randomUUID().replace(/-/g, "");
+        if (!old) {
+          order.quote = { ...q, sentAt: now };
+          order.status = "quoted";
+        } else if (priceChanged) {
+          // A new price needs a new yes (and payment) from the customer
+          order.quote = { ...q, sentAt: old.sentAt, resentAt: old.resentAt };
+          order.response = null;
+          order.payment = null;
+          if (order.status !== "done") order.status = "quoted";
+        } else {
+          order.quote.note = q.note;
+        }
+      }
       order.name = name;
       order.contact = contact;
       order.items = items;
-      order.editedAt = new Date().toISOString();
+      order.editedAt = now;
       await orders.setJSON(id, order);
       return Response.json(order);
     }
@@ -106,16 +140,10 @@ export default async (req) => {
     }
     // Save the shop's price. The customer gets a private link (with order.key) to say yes or no.
     if (body.action === "quote") {
-      const amount = parseFloat(String(body.price || "").replace(/[^0-9.]/g, ""));
-      if (!(amount > 0) || amount > 100000) return new Response("Please type the price as a number, like 45 or 45.50", { status: 400 });
-      // The shop types the price before tax; Florida sales tax is added on top unless they untick it
-      const subtotalCents = Math.round(amount * 100);
-      const taxRate = body.addTax === false ? 0 : TAX_RATE;
-      const taxCents = Math.round(subtotalCents * taxRate);
-      const amountCents = subtotalCents + taxCents;
-      const price = "$" + (amountCents / 100).toFixed(2);
+      const q = makeQuote(body.price, body.addTax, body.note);
+      if (!q) return new Response("Please type the price as a number, like 45 or 45.50", { status: 400 });
       if (!order.key) order.key = crypto.randomUUID().replace(/-/g, "");
-      order.quote = { price, amountCents, subtotalCents, taxCents, taxRate, note: String(body.note || "").trim().slice(0, 1000), sentAt: new Date().toISOString() };
+      order.quote = { ...q, sentAt: new Date().toISOString() };
       order.response = null;
       order.payment = null;
       order.status = "quoted";
