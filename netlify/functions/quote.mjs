@@ -17,6 +17,7 @@ const forCustomer = (o) => ({
   paid: o.paid || null,
   canPay: paymentsOn() && !!(o.quote && o.quote.amountCents),
   status: o.status,
+  messages: (o.messages || []).map((m) => ({ text: m.text, at: m.at })),
   mockups: (o.uploads || []).filter((u) => u.kind === "mockup").map((u) => ({ key: u.key, name: u.name }))
 });
 
@@ -59,6 +60,17 @@ export default async (req) => {
   if (req.method === "POST") {
     let body;
     try { body = await req.json(); } catch { return new Response("Bad request", { status: 400 }); }
+
+    // A message to the shop, any time, without saying yes or no or paying
+    if (body.action === "message") {
+      const text = String(body.message || "").trim().slice(0, 1000);
+      if (!text) return new Response("Type a message first", { status: 400 });
+      if ((order.messages || []).length >= 30) return new Response("Too many messages. Please call or email us.", { status: 429 });
+      order.messages = [...(order.messages || []), { text, at: new Date().toISOString() }];
+      await orders.setJSON(id, order);
+      return Response.json(forCustomer(order));
+    }
+
     if (order.status === "done" || order.paid) return Response.json(forCustomer(order));
 
     // "Yes, pay now": record the yes, then open a Stripe checkout for the quoted amount
