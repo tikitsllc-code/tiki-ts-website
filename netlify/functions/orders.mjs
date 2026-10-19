@@ -25,6 +25,10 @@ export default async (req) => {
   if (req.method === "GET") {
     const { blobs } = await orders.list();
     const all = (await Promise.all(blobs.map((b) => orders.get(b.key, { type: "json" })))).filter(Boolean);
+    // The Orders page checks for new chat messages every few seconds: just the messages, no payment check
+    if (new URL(req.url).searchParams.get("chat")) {
+      return Response.json(all.map((o) => ({ id: o.id, messages: o.messages || [] })));
+    }
     // Catch any card payments that finished since the last look
     await Promise.all(all.map(async (o) => {
       try { if (await syncPayment(o)) await orders.setJSON(o.id, o); } catch (err) { /* try again next time */ }

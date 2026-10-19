@@ -47,6 +47,8 @@ export default async (req) => {
       if (!data) return notFound();
       return new Response(data, { headers: { "Content-Type": upload.type || "image/png", "Cache-Control": "private, max-age=300" } });
     }
+    // The quote page checks for the shop's replies every few seconds: just the chat
+    if (url.searchParams.get("chat")) return Response.json({ messages: forCustomer(order).messages });
     // Coming back from Stripe: check whether the payment went through
     let justPaid = false;
     if (url.searchParams.get("session_id") || (order.payment && !order.paid)) {
