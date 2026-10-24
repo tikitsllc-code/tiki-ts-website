@@ -1058,9 +1058,7 @@
     row.innerHTML =
       '<span class="dot dot-empty" aria-hidden="true"></span>' +
       '<div class="field cname-field"><label for="cname-' + n + '">Color</label>' +
-        '<select id="cname-' + n + '" class="cname"><option value="">Pick one</option>' +
-        colorsFor(it).map(c => '<option>' + escT(c.name) + '</option>').join('') + '<option value="other">' + escT(txt(FORM.otherColor, 'Other color')) + '</option></select>' +
-        '<input class="cother" id="cother-' + n + '" placeholder="Which color?" aria-label="Which color?" hidden></div>' +
+        '<input id="cname-' + n + '" class="cname" type="text" placeholder="Type a color" autocomplete="off"></div>' +
       (it.styles.length
         ? '<div class="field"><label for="cstyle-' + n + '">' + escT(txt(FORM.styleLabel, 'Style')) + '</label><select id="cstyle-' + n + '" class="cstyle"><option value="">' + escT(txt(FORM.styleLabel, 'Style')) + '</option>' +
             it.styles.map(s => '<option>' + escT(s) + '</option>').join('') + '</select></div>'
@@ -1091,23 +1089,28 @@
     rows.forEach(r => { r.querySelector('.remove-color').hidden = rows.length === 1; });
   }
   function paintRow(row) {
-    const sel = row.querySelector('.cname');
-    const c = colorsFor(ITEM[row.closest('.color-rows').id.slice(7)]).find(c => c.name === sel.value);
+    /* The color is typed in. The dot shows that color when it's one the browser knows
+       (like "navy" or "light blue"), and a rainbow for anything else. */
+    const typed = row.querySelector('.cname').value.trim();
+    const known = typed && colorsFor(ITEM[row.closest('.color-rows').id.slice(7)]).find(c => c.name.toLowerCase() === typed.toLowerCase());
+    const css = typed.toLowerCase().replace(/\s+/g, '');
     const dot = row.querySelector('.dot');
-    dot.style.background = c ? c.hex : sel.value === 'other' ? 'conic-gradient(#e0268a, #f5d629, #1aa6a6, #6b3fa0, #e0268a)' : 'transparent';
-    dot.classList.toggle('dot-empty', !sel.value);
-    row.querySelector('.cother').hidden = sel.value !== 'other';
+    dot.style.background = !typed ? 'transparent'
+      : known ? known.hex
+      : (window.CSS && CSS.supports('color', css)) ? css
+      : 'conic-gradient(#e0268a, #f5d629, #1aa6a6, #6b3fa0, #e0268a)';
+    dot.classList.toggle('dot-empty', !typed);
   }
   const num = v => Math.max(0, parseInt(v, 10) || 0);
   const lineList = it => [...document.querySelectorAll('#colors-' + it.key + ' .color-row')].map(r => {
-    const sel = r.querySelector('.cname').value;
+    const typedColor = r.querySelector('.cname').value.trim();
     const fitSel = r.querySelector('.cfit');
     const fit = fitSel ? FITS.find(f => f.key === fitSel.value) : null;
     const sizeSel = r.querySelector('.csize');
     const styleSel = r.querySelector('.cstyle');
     return {
       style: styleSel ? styleSel.value : '',
-      color: sel === 'other' ? (r.querySelector('.cother').value.trim() || 'Other color') : sel,
+      color: typedColor,
       fit: fit ? fit.label : '',
       size: sizeSel ? sizeSel.value : '',
       qty: num(r.querySelector('.cqty').value),
@@ -1121,7 +1124,10 @@
   }
 
   const details = document.getElementById('item-details');
-  details.addEventListener('input', updateTotals);
+  details.addEventListener('input', e => {
+    if (e.target.classList.contains('cname')) paintRow(e.target.closest('.color-row'));
+    updateTotals();
+  });
   /* ---------- Uploaded artwork ----------
      Each order line has its own small Design box, so a design belongs to those
      exact shirts (color, fit, size). */
