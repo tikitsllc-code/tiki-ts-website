@@ -236,6 +236,12 @@
   textarea { min-height: 120px; resize: vertical; }
   input:focus, select:focus, textarea:focus { outline: 3px solid var(--sun); outline-offset: 0; }
   .form-actions { grid-column: 1 / -1; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .review-note {
+    flex: 1 1 280px; margin: 0; padding: 10px 14px; max-width: 60ch;
+    background: #fff8d6; border: 2px solid var(--ink); border-left: 6px solid var(--hibiscus); border-radius: 10px;
+    font-size: 0.92rem; line-height: 1.45; color: var(--ink);
+  }
+  .review-note b { color: var(--hibiscus); }
   .result {
     grid-column: 1 / -1;
     background: #fff7d1; border: 2px dashed var(--ink); border-radius: 12px; padding: 16px;
@@ -636,6 +642,7 @@
         <p class="error" id="q-error" data-c="form.missingMessage" hidden>Almost there. Please add your name, a way to reach you, and at least one line with how many for each item you picked.</p>
         <div class="form-actions">
           <button class="btn btn-sun" type="submit" data-c="form.reviewButton">Review my quote request</button>
+          <p class="review-note" data-c="form.reviewNote"><b>Before you hit review:</b> make sure every detail you want is listed: colors, sizes, how many, where the print goes, and any names or text.</p>
         </div>
         <div class="result" id="q-result" hidden>
           <strong data-c="form.reviewHeading">Check your request, then hit Send:</strong>
