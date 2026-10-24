@@ -59,7 +59,7 @@
       "name": "Bags",
       "singular": "bag",
       "show": true,
-      "comingSoon": true,
+      "comingSoon": false,
       "showCard": true,
       "picture": "bag",
       "hasSizes": false,
