@@ -170,6 +170,17 @@
   .shirt svg { width: 72px; height: 64px; }
   .shirt h3 { margin: 4px 0 0; font: 900 1.2rem/1.2 var(--body); }
   .shirt p { margin: 0; color: var(--ink-soft); font-size: 0.98rem; }
+  /* Products we can't make yet */
+  .shirt.soon { position: relative; background: #ece6d4; }
+  .shirt.soon svg, .shirt.soon h3, .shirt.soon p { opacity: 0.55; }
+  .soon-tag {
+    align-self: flex-start; background: var(--hibiscus); color: #fff; border: 2px solid var(--ink);
+    border-radius: 999px; padding: 2px 12px; font: 900 0.85rem/1.4 var(--body); letter-spacing: 0.02em;
+    box-shadow: 2px 2px 0 var(--ink); transform: rotate(-3deg);
+  }
+  .option.soon { background: #ece6d4; color: #8a8270; cursor: not-allowed; }
+  .option.soon b { color: #8a8270; }
+  .option.soon .soon-tag { display: inline-block; white-space: nowrap; font-size: 0.72rem; padding: 0 9px; margin-top: 4px; transform: none; box-shadow: none; }
   .uses { margin: 32px 0 0; max-width: 70ch; font-size: 1.05rem; color: var(--ink-soft); }
   .uses strong { color: var(--ink); }
 
@@ -891,8 +902,11 @@
     cardTitle: String(it.cardTitle || it.name),
     cardText: String(it.cardText || ''),
     styles: strList(it.styles),
-    onCard: it.showCard !== false
+    onCard: it.showCard !== false,
+    soon: !!it.comingSoon
   }));
+  const OPEN_ITEMS = ITEMS.filter(it => !it.soon);
+  const SOON_TAG = '<span class="soon-tag">Coming soon</span>';
   const colorsFor = it => it.colors.length ? it.colors : COLORS;
   const FORM = CONTENT.form || {};
   const txt = (v, fallback) => (typeof v === 'string' && v.trim()) ? v : fallback;
@@ -913,12 +927,15 @@
 
   /* Product cards in "What we print" */
   document.getElementById('product-cards').innerHTML = ITEMS.filter(it => it.onCard).map((it, i) =>
-    '<article class="shirt">' + iconSvg(ICON_COLORS[i % ICON_COLORS.length], it.picture) +
+    '<article class="shirt' + (it.soon ? ' soon' : '') + '">' + iconSvg(ICON_COLORS[i % ICON_COLORS.length], it.picture) +
+    (it.soon ? SOON_TAG : '') +
     '<h3>' + escT(it.cardTitle) + '</h3>' + (it.cardText ? '<p>' + escT(it.cardText) + '</p>' : '') + '</article>').join('');
 
-  /* Item checkboxes in the quote form */
-  document.getElementById('item-picks').innerHTML = ITEMS.map((it, i) =>
-    '<label class="option" for="it-' + it.key + '"><input type="checkbox" id="it-' + it.key + '" name="items" value="' + it.key + '"' + (i === 0 ? ' checked' : '') + '><span><b>' + escT(it.label) + '</b></span></label>').join('');
+  /* Item checkboxes in the quote form (coming-soon items show but can't be picked) */
+  document.getElementById('item-picks').innerHTML = ITEMS.map(it =>
+    '<label class="option' + (it.soon ? ' soon' : '') + '" for="it-' + it.key + '"><input type="checkbox" id="it-' + it.key + '" name="items" value="' + it.key + '"' +
+      (it.soon ? ' disabled' : (it === OPEN_ITEMS[0] ? ' checked' : '')) + '><span><b>' + escT(it.label) + '</b>' +
+      (it.soon ? SOON_TAG : '') + '</span></label>').join('');
 
   /* ---------- Our prints ----------
      Photos come from the "Our prints photos" list in the admin. Until there are any,
@@ -1003,9 +1020,9 @@
         '<div class="color-rows' + (it.sized ? ' sized' : '') + '" id="colors-' + it.key + '" style="--cols: auto minmax(0, 1.5fr)' +
           (it.styles.length ? ' minmax(0, 1.1fr)' : '') + (it.sized ? ' minmax(0, 1fr) minmax(0, 0.8fr)' : '') + ' 72px 108px 62px auto"></div>' +
         '<div class="color-foot"><button type="button" class="add-color" data-item="' + it.key + '">' + escT(txt(FORM.addLine, '+ Add another line')) + '</button>' +
-        (ITEMS.length > 1
+        (OPEN_ITEMS.length > 1
           ? '<div class="also-on" role="group" aria-label="Put your design on something else too"><span class="also-label">' + escT(txt(FORM.alsoOnLabel, 'Also put it on:')) + '</span>' +
-              ITEMS.filter(o => o.key !== it.key).map((o, i) =>
+              OPEN_ITEMS.filter(o => o.key !== it.key).map((o, i) =>
                 '<button type="button" class="also-btn" data-goto="' + o.key + '" data-from="' + it.key + '">' +
                   iconSvg(ICON_COLORS[(ITEMS.indexOf(o)) % ICON_COLORS.length], o.picture) + '<span>' + escT(o.cardTitle) + '</span></button>').join('') +
             '</div>'
