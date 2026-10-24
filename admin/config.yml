@@ -133,6 +133,7 @@ collections:
               - { label: "Name for just one", name: "singular", widget: "string", hint: "Like shirt or hat. Used in sentences like \"Drag the tiki onto the shirt\"." }
               - { label: "Show this product on the site", name: "show", widget: "boolean", default: true }
               - { label: "Show its card in What we print", name: "showCard", widget: "boolean", default: true }
+              - { label: "Coming soon (can't be ordered yet)", name: "comingSoon", widget: "boolean", default: false, required: false, hint: "Shows a Coming soon tag and turns off ordering for this product. Turn it off when you're ready to sell it." }
               - { label: "Card title", name: "cardTitle", widget: "string", required: false }
               - { label: "Card text", name: "cardText", widget: "text", required: false }
               - label: "Picture customers drag their design onto"
